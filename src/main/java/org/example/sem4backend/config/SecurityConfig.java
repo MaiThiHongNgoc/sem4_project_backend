@@ -36,14 +36,17 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/departments/**").permitAll()
-                        .requestMatchers("/api/positions/**").permitAll()
-                        .requestMatchers("/api/employees/**").permitAll()
-                        .requestMatchers("/api/roles/**").permitAll()
-                        .requestMatchers("/api/users/**").permitAll()
-                        .requestMatchers("/api/password-reset/**").permitAll()
-                        .anyRequest().authenticated()
+//                        .requestMatchers("/api/auth/**").permitAll()
+//                        .requestMatchers("/api/departments/**").permitAll()
+//                        .requestMatchers("/api/positions/**").permitAll()
+//                        .requestMatchers("/api/employees/**").permitAll()
+//                        .requestMatchers("/api/roles/**").permitAll()
+//                        .requestMatchers("/api/users/**").permitAll()
+//                        .requestMatchers("/api/password-reset/**").permitAll()
+//                        .requestMatchers("/api/locations/**").permitAll()
+                          .requestMatchers("/**").permitAll()
+                          .requestMatchers("/static/uploads/qr/").permitAll() // Cho phép truy cập tài nguyên tĩnh
+                          .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
 
