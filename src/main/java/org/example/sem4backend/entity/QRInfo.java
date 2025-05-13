@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.Date;
 import java.util.UUID;
 
 @Entity
@@ -16,7 +17,7 @@ public class QRInfo {
 
     @Id
     @Column(name = "qr_info_id", columnDefinition = "CHAR(36)")
-    UUID qrInfoId;
+    UUID qrInfoId = UUID.randomUUID();
 
     @Column(name = "qr_code", nullable = false, unique = true)
     String qrCode;
@@ -24,20 +25,21 @@ public class QRInfo {
     @Column(name = "description", columnDefinition = "TEXT")
     String description;
 
-    @Column(name = "location_name")
-    String locationName;
+    @ManyToOne
+    @JoinColumn(name = "location_id")
+    Location location;
 
     @ManyToOne
     @JoinColumn(name = "created_by")
     User createdBy;
 
-    @Column(name = "created_at", updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
-    java.util.Date createdAt;
+    @Column(name = "created_at", updatable = false)
+    Date createdAt = new Date();
 
-    @Column(name = "expired_at")
     @Temporal(TemporalType.DATE)
-    java.util.Date expiredAt;
+    @Column(name = "expired_at")
+    Date expiredAt;
 
     @Column(name = "active")
     Boolean active = true;
@@ -51,7 +53,7 @@ public class QRInfo {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    Status status;
+    Status status = Status.ACTIVE;
 
     public enum Shift {
         Morning,
@@ -61,7 +63,8 @@ public class QRInfo {
     }
 
     public enum Status {
-        Active,
-        Inactive
+        ACTIVE,
+        INACTIVE,
+        DELETED
     }
 }

@@ -30,9 +30,6 @@ public class QRAttendance {
     @Temporal(TemporalType.TIMESTAMP)
     java.util.Date scanTime;
 
-    @Column(name = "location", nullable = false)
-    String location;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     Status status;
