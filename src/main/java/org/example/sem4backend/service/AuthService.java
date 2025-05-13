@@ -1,16 +1,17 @@
 package org.example.sem4backend.service;
 
-
 import lombok.RequiredArgsConstructor;
 import org.example.sem4backend.dto.request.LoginRequest;
 import org.example.sem4backend.dto.response.LoginResponse;
 import org.example.sem4backend.entity.User;
+import org.example.sem4backend.exception.AppException;
 import org.example.sem4backend.exception.ErrorCode;
 import org.example.sem4backend.repository.UserRepository;
 import org.example.sem4backend.security.JwtTokenProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 
@@ -26,37 +27,34 @@ public class AuthService {
     public LoginResponse login(LoginRequest request) {
         logger.debug("Attempting login for username: {}", request.getUsername());
 
-        // Xác thực tài khoản và mật khẩu
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
-                        request.getPassword()
-                )
-        );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getUsername(),
+                            request.getPassword()
+                    )
+            );
+        } catch (BadCredentialsException ex) {
+            logger.warn("Authentication failed for username: {}. Reason: Bad credentials", request.getUsername());
+            throw new AppException(ErrorCode.UNAUTHORIZED, "Tên đăng nhập hoặc mật khẩu không đúng");
+        }
+
         logger.debug("Authentication successful for username: {}", request.getUsername());
 
-        // Lấy thông tin người dùng từ database
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> {
                     logger.error("User not found: {}", request.getUsername());
-                    return new RuntimeException(ErrorCode.USER_NOT_FOUND.getMessage());
+                    return new AppException(ErrorCode.USER_NOT_FOUND, "Người dùng không tồn tại");
                 });
 
-        // Kiểm tra trạng thái tài khoản
         if (user.getStatus() != User.Status.Active) {
             logger.error("Account disabled for username: {}", request.getUsername());
-            throw new RuntimeException("Tài khoản đã bị vô hiệu hóa.");
+            throw new AppException(ErrorCode.UNAUTHORIZED, "Tài khoản đã bị vô hiệu hóa.");
         }
 
-        // Lấy vai trò của người dùng
         String roleName = user.getRole() != null ? user.getRole().getRole_name() : "USER";
-        logger.debug("Role for username {}: {}", request.getUsername(), roleName);
-
-        // Tạo token JWT
         String token = jwtTokenProvider.createToken(user.getUsername(), roleName);
-        logger.debug("Generated JWT token for username: {}", request.getUsername());
 
-        // Trả về thông tin người dùng và token
         return new LoginResponse(
                 user.getUserId(),
                 user.getUsername(),
