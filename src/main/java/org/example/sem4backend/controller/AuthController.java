@@ -38,17 +38,15 @@ public class AuthController {
                     .build();
         }
 
-        logger.debug("Received login request for username: {}", request.getUsername());
+
         try {
             LoginResponse loginResponse = authService.login(request);
-            logger.debug("Login successful for username: {}", request.getUsername());
             return ApiResponse.<LoginResponse>builder()
                     .code(HttpStatus.OK.value())
                     .message(ErrorCode.SUCCESS.getMessage())
                     .result(loginResponse)
                     .build();
         } catch (RuntimeException e) {
-            logger.error("Login failed for username: {}. Error: {}", request.getUsername(), e.getMessage());
             return ApiResponse.<LoginResponse>builder()
                     .code(HttpStatus.UNAUTHORIZED.value())
                     .message(e.getMessage())
