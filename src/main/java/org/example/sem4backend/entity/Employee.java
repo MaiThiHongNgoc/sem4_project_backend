@@ -6,6 +6,8 @@ import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -13,6 +15,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Employee {
 
@@ -34,16 +37,16 @@ public class Employee {
     }
 
     @Column(name = "date_of_birth", nullable = false)
-    String dateOfBirth;
+    LocalDate dateOfBirth;
 
     @Column(name = "phone", unique = true)
     String phone;
 
-    @Column(name = "email", unique = true, nullable = false)
-    String email;
-
     @Column(name = "address")
     String address;
+
+    @Column(name = "img")
+    String img;
 
     @ManyToOne
     @JoinColumn(name = "department_id")
@@ -54,7 +57,7 @@ public class Employee {
     Position position;
 
     @Column(name = "hire_date", nullable = false)
-    String hireDate;
+    LocalDate hireDate;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -67,11 +70,11 @@ public class Employee {
         OnLeave
     }
 
-    @Column(name = "created_at", nullable = false, updatable = false)
     @CreationTimestamp
-    String createdAt;
+    @Column(name = "created_at", nullable = false, updatable = false)
+    LocalDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false)
     @UpdateTimestamp
-    String updatedAt;
+    @Column(name = "updated_at", nullable = false)
+    LocalDateTime updatedAt;
 }
