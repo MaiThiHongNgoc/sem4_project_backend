@@ -1,6 +1,5 @@
 package org.example.sem4backend.controller;
 
-
 import jakarta.validation.Valid;
 import org.example.sem4backend.dto.request.EmployeeRequest;
 import org.example.sem4backend.dto.response.ApiResponse;
@@ -42,7 +41,7 @@ public class EmployeeController {
             @RequestBody @Valid EmployeeRequest request,
             BindingResult bindingResult
     ) {
-        logger.info("Received addEmployee request for email={}", request.getEmail());
+        logger.info("Received addEmployee request for fullName={}", request.getFullName());
         if (bindingResult.hasErrors()) {
             String errorMessage = bindingResult.getFieldErrors().stream()
                     .map(fieldError -> fieldError.getDefaultMessage())

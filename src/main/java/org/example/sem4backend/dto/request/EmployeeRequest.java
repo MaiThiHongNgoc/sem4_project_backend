@@ -18,8 +18,8 @@ public class EmployeeRequest {
     String gender;
     LocalDate dateOfBirth;
     String phone;
-    String email;
     String address;
+    String img;
     UUID departmentId;
     UUID positionId;
     LocalDate hireDate;
