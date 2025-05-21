@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,53 +28,51 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @PreAuthorize("hasAnyRole('Admin', 'Hr')")
     @GetMapping
     public ResponseEntity<ApiResponse<List<UserResponse>>> getUsers(
             @RequestParam(required = false) String status
     ) {
-        logger.info("Received getUsers request: status={}", status);
         List<UserResponse> users = userService.getUsers(status);
         return new ResponseEntity<>(ApiResponse.success(ErrorCode.SUCCESS, users), HttpStatus.OK);
     }
 
+    @PreAuthorize("hasAnyRole('Admin', 'Hr')")
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<UserResponse>> register(
             @RequestBody @Valid UserRequest request,
             BindingResult bindingResult
     ) {
-        logger.info("Received register request for username={}", request.getUsername());
         if (bindingResult.hasErrors()) {
             String errorMessage = bindingResult.getFieldErrors().stream()
                     .map(fieldError -> fieldError.getDefaultMessage())
                     .collect(Collectors.joining(", "));
-            logger.warn("Validation failed: {}", errorMessage);
             return new ResponseEntity<>(ApiResponse.error(ErrorCode.VALIDATION_FAILED, errorMessage), HttpStatus.BAD_REQUEST);
         }
         ApiResponse<UserResponse> response = userService.register(request, bindingResult);
         return new ResponseEntity<>(response, response.isSuccess() ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST);
     }
 
+    @PreAuthorize("hasAnyRole('Admin', 'Hr')")
     @PutMapping("/{userId}")
     public ResponseEntity<ApiResponse<UserResponse>> updateUser(
             @PathVariable UUID userId,
             @RequestBody @Valid UserRequest request,
             BindingResult bindingResult
     ) {
-        logger.info("Received updateUser request for userId={}", userId);
         if (bindingResult.hasErrors()) {
             String errorMessage = bindingResult.getFieldErrors().stream()
                     .map(fieldError -> fieldError.getDefaultMessage())
                     .collect(Collectors.joining(", "));
-            logger.warn("Validation failed: {}", errorMessage);
             return new ResponseEntity<>(ApiResponse.error(ErrorCode.VALIDATION_FAILED, errorMessage), HttpStatus.BAD_REQUEST);
         }
         ApiResponse<UserResponse> response = userService.updateUser(userId, request, bindingResult);
         return new ResponseEntity<>(response, response.isSuccess() ? HttpStatus.OK : HttpStatus.BAD_REQUEST);
     }
 
+    @PreAuthorize("hasAnyRole('Admin', 'Hr')")
     @DeleteMapping("/{userId}")
     public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable UUID userId) {
-        logger.info("Received deleteUser request for userId={}", userId);
         ApiResponse<Void> response = userService.deleteUser(userId);
         return new ResponseEntity<>(response, response.isSuccess() ? HttpStatus.OK : HttpStatus.BAD_REQUEST);
     }

@@ -25,9 +25,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest request, BindingResult bindingResult) {
-        // Kiểm tra nếu có lỗi validation
         if (bindingResult.hasErrors()) {
-            // Tạo thông báo lỗi từ các lỗi validation
             String errorMessage = bindingResult.getFieldErrors().stream()
                     .map(fieldError -> fieldError.getDefaultMessage())
                     .collect(Collectors.joining(", "));

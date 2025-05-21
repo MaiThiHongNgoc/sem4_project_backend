@@ -48,6 +48,7 @@ public class QRInfoService {
                 qrInfo.setLocation(location);
                 qrInfo.setShift(determineShift(new Date()));
 
+
                 User admin = userRepository.findByUsername("admin").orElse(null);
                 qrInfo.setCreatedBy(admin);
 

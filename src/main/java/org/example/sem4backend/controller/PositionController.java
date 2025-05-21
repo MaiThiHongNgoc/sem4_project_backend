@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,26 +29,25 @@ public class PositionController {
     @Autowired
     private PositionService positionService;
 
+    @PreAuthorize("hasAnyRole('Admin', 'Hr')")
     @GetMapping
     public ResponseEntity<ApiResponse<List<PositionResponse>>> getPositions(
             @RequestParam(required = false) String status
     ) {
-        logger.info("Received getPositions request: status={}", status);
         List<PositionResponse> positions = positionService.getPositions(status);
         return new ResponseEntity<>(ApiResponse.success(ErrorCode.SUCCESS, positions), HttpStatus.OK);
     }
 
+    @PreAuthorize("hasAnyRole('Admin', 'Hr')")
     @PostMapping
     public ResponseEntity<ApiResponse<PositionResponse>> addPosition(
             @RequestBody @Valid PositionRequest request,
             BindingResult bindingResult
     ) {
-        logger.info("Received addPosition request: positionName={}", request.getPositionName());
         if (bindingResult.hasErrors()) {
             String errorMessage = bindingResult.getFieldErrors().stream()
                     .map(fieldError -> fieldError.getDefaultMessage())
                     .collect(Collectors.joining(", "));
-            logger.warn("Validation failed: {}", errorMessage);
             return new ResponseEntity<>(ApiResponse.error(ErrorCode.VALIDATION_FAILED, errorMessage), HttpStatus.BAD_REQUEST);
         }
         ApiResponse<PositionResponse> response = positionService.addPosition(request);
@@ -55,18 +55,17 @@ public class PositionController {
         return new ResponseEntity<>(response, status);
     }
 
+    @PreAuthorize("hasAnyRole('Admin', 'Hr')")
     @PutMapping("/{positionId}")
     public ResponseEntity<ApiResponse<PositionResponse>> updatePosition(
             @PathVariable UUID positionId,
             @RequestBody @Valid PositionRequest request,
             BindingResult bindingResult
     ) {
-        logger.info("Received updatePosition request for positionId={}", positionId);
         if (bindingResult.hasErrors()) {
             String errorMessage = bindingResult.getFieldErrors().stream()
                     .map(fieldError -> fieldError.getDefaultMessage())
                     .collect(Collectors.joining(", "));
-            logger.warn("Validation failed: {}", errorMessage);
             return new ResponseEntity<>(ApiResponse.error(ErrorCode.VALIDATION_FAILED, errorMessage), HttpStatus.BAD_REQUEST);
         }
         ApiResponse<PositionResponse> response = positionService.updatePosition(positionId, request);
@@ -74,9 +73,9 @@ public class PositionController {
         return new ResponseEntity<>(response, status);
     }
 
+    @PreAuthorize("hasAnyRole('Admin', 'Hr')")
     @DeleteMapping("/{positionId}")
     public ResponseEntity<ApiResponse<Void>> deletePosition(@PathVariable UUID positionId) {
-        logger.info("Received deletePosition request for positionId={}", positionId);
         ApiResponse<Void> response = positionService.deletePosition(positionId);
         HttpStatus status = response.getErrorCode() == ErrorCode.SUCCESS ? HttpStatus.OK : HttpStatus.BAD_REQUEST;
         return new ResponseEntity<>(response, status);

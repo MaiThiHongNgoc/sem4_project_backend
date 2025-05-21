@@ -20,12 +20,13 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
+
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
 
     public LoginResponse login(LoginRequest request) {
-        logger.debug("Attempting login for username: {}", request.getUsername());
+        logger.info("Login attempt - Username: {}", request.getUsername());
 
         try {
             authenticationManager.authenticate(
@@ -35,31 +36,57 @@ public class AuthService {
                     )
             );
         } catch (BadCredentialsException ex) {
-            logger.warn("Authentication failed for username: {}. Reason: Bad credentials", request.getUsername());
+            logger.warn("Failed login attempt for username: {}", request.getUsername());
             throw new AppException(ErrorCode.UNAUTHORIZED, "Tên đăng nhập hoặc mật khẩu không đúng");
         }
 
-        logger.debug("Authentication successful for username: {}", request.getUsername());
-
-        User user = userRepository.findByUsername(request.getUsername())
+        // Lấy user kèm role
+        User user = userRepository.findByUsernameWithRole(request.getUsername())
                 .orElseThrow(() -> {
-                    logger.error("User not found: {}", request.getUsername());
+                    logger.warn("User not found with username: {}", request.getUsername());
                     return new AppException(ErrorCode.USER_NOT_FOUND, "Người dùng không tồn tại");
                 });
 
+        logger.info("Fetched user from DB - ID: {}, Username: {}, Email: {}, Role ID in DB: {}",
+                user.getUserId(), user.getUsername(), user.getEmail(),
+                user.getRole() != null ? user.getRole().getRoleId() : "NULL");
+
         if (user.getStatus() != User.Status.Active) {
-            logger.error("Account disabled for username: {}", request.getUsername());
+            logger.warn("Attempt to login with inactive user: {}, Status: {}",
+                    user.getUsername(), user.getStatus());
             throw new AppException(ErrorCode.UNAUTHORIZED, "Tài khoản đã bị vô hiệu hóa.");
         }
 
-        String roleName = user.getRole() != null ? user.getRole().getRole_name() : "USER";
+        String roleId;
+        String roleName;
+
+        if (user.getRole() != null) {
+            logger.info("User has role: {}", user.getRole());
+            if (user.getRole().getRoleId() == null) {
+                logger.error("Role ID is null for role: {}", user.getRole());
+                throw new AppException(ErrorCode.ROLE_NOT_FOUND, "Vai trò không hợp lệ: ID vai trò bị thiếu.");
+            }
+            roleId = user.getRole().getRoleId().toString();
+            logger.info("Extracted Role ID: {}", roleId);
+            roleName = user.getRole().getRoleName() != null ? user.getRole().getRoleName() : "USER";
+            logger.info("Extracted Role Name: {}", roleName);
+        } else {
+            logger.error("User.getRole() is null for username: {}. Please check role_id in users table.",
+                    user.getUsername());
+            throw new AppException(ErrorCode.ROLE_NOT_FOUND,
+                    "Người dùng chưa được gán vai trò hợp lệ. Vui lòng kiểm tra role_id trong bảng users.");
+        }
+
         String token = jwtTokenProvider.createToken(user.getUsername(), roleName);
+
+        logger.info("Generated JWT token for username: {}, Role: {}", user.getUsername(), roleName);
+        logger.info("User login completed - Username: {}", user.getUsername());
 
         return new LoginResponse(
                 user.getUserId(),
                 user.getUsername(),
                 user.getEmail(),
-                user.getRole() != null ? user.getRole().getRole_id().toString() : null,
+                roleId,
                 user.getStatus() != null ? user.getStatus().name() : null,
                 token
         );
