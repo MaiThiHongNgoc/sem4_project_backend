@@ -3,7 +3,6 @@ package org.example.sem4backend.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
 import java.util.UUID;
 
 @Entity
@@ -13,13 +12,12 @@ import java.util.UUID;
 @Table(name = "roles")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Role {
-
     @Id
     @Column(name = "role_id", columnDefinition = "CHAR(36)")
-    UUID role_id;
+    UUID roleId;
 
     @Column(name = "role_name", nullable = false, unique = true)
-    String role_name;
+    String roleName;
 
     @Column(name = "description")
     String description;
