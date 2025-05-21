@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +28,7 @@ public class RoleController {
     @Autowired
     private RoleService roleService;
 
+    @PreAuthorize("hasRole('Admin')")
     @GetMapping
     public ResponseEntity<ApiResponse<List<RoleResponse>>> getRoles(
             @RequestParam(required = false) String status
@@ -36,6 +38,7 @@ public class RoleController {
         return new ResponseEntity<>(ApiResponse.success(ErrorCode.SUCCESS, roles), HttpStatus.OK);
     }
 
+    @PreAuthorize("hasRole('Admin')")
     @PostMapping
     public ResponseEntity<ApiResponse<RoleResponse>> addRole(
             @RequestBody @Valid RoleRequest request,
@@ -53,6 +56,7 @@ public class RoleController {
         return new ResponseEntity<>(response, response.isSuccess() ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST);
     }
 
+    @PreAuthorize("hasRole('Admin')")
     @PutMapping("/{roleId}")
     public ResponseEntity<ApiResponse<RoleResponse>> updateRole(
             @PathVariable UUID roleId,
@@ -71,6 +75,7 @@ public class RoleController {
         return new ResponseEntity<>(response, response.isSuccess() ? HttpStatus.OK : HttpStatus.BAD_REQUEST);
     }
 
+    @PreAuthorize("hasRole('Admin')")
     @DeleteMapping("/{roleId}")
     public ResponseEntity<ApiResponse<Void>> deleteRole(@PathVariable UUID roleId) {
         logger.info("Received deleteRole request for roleId={}", roleId);
