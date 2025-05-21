@@ -35,7 +35,7 @@ public class User {
     @Column(name = "email", nullable = false, unique = true)
     String email;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id")
     Role role;
 

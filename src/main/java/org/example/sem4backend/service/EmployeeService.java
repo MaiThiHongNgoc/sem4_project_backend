@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Date;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -47,18 +49,22 @@ public class EmployeeService {
         try {
             UUID employeeId = UUID.randomUUID();
 
+            // Convert LocalDate to java.sql.Date
+            Date dob = request.getDateOfBirth() != null ? Date.valueOf(request.getDateOfBirth()) : null;
+            Date hireDate = request.getHireDate() != null ? Date.valueOf(request.getHireDate()) : null;
+
             jdbcTemplate.update(
                     "CALL sp_add_employee(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     employeeId.toString(),
                     request.getFullName(),
                     request.getGender(),
-                    request.getDateOfBirth(),
+                    dob,
                     request.getPhone(),
                     request.getAddress(),
                     request.getImg(),
                     request.getDepartmentId() != null ? request.getDepartmentId().toString() : null,
                     request.getPositionId() != null ? request.getPositionId().toString() : null,
-                    request.getHireDate()
+                    hireDate
             );
 
             EmployeeResponse response = getEmployeeById(employeeId);
@@ -74,18 +80,21 @@ public class EmployeeService {
 
     public EmployeeResponse updateEmployee(UUID employeeId, EmployeeRequest request) {
         try {
+            Date dob = request.getDateOfBirth() != null ? Date.valueOf(request.getDateOfBirth()) : null;
+            Date hireDate = request.getHireDate() != null ? Date.valueOf(request.getHireDate()) : null;
+
             jdbcTemplate.update(
                     "CALL sp_update_employee(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     employeeId.toString(),
                     request.getFullName(),
                     request.getGender(),
-                    request.getDateOfBirth(),
+                    dob,
                     request.getPhone(),
                     request.getAddress(),
                     request.getImg(),
                     request.getDepartmentId() != null ? request.getDepartmentId().toString() : null,
                     request.getPositionId() != null ? request.getPositionId().toString() : null,
-                    request.getHireDate()
+                    hireDate
             );
 
             EmployeeResponse response = getEmployeeById(employeeId);
@@ -132,18 +141,31 @@ public class EmployeeService {
         response.setEmployeeId(UUID.fromString(rs.getString("employee_id")));
         response.setFullName(rs.getString("full_name"));
         response.setGender(rs.getString("gender"));
-        response.setDateOfBirth(rs.getDate("date_of_birth").toLocalDate());
+
+        Date dob = rs.getDate("date_of_birth");
+        response.setDateOfBirth(dob != null ? dob.toLocalDate() : null);
+
         response.setPhone(rs.getString("phone"));
         response.setAddress(rs.getString("address"));
-        response.setImg(rs.getString("img")); // Thêm trường ảnh
+        response.setImg(rs.getString("img"));
+
         String departmentId = rs.getString("department_id");
         response.setDepartmentId(departmentId != null ? UUID.fromString(departmentId) : null);
+
         String positionId = rs.getString("position_id");
         response.setPositionId(positionId != null ? UUID.fromString(positionId) : null);
-        response.setHireDate(rs.getDate("hire_date").toLocalDate());
+
+        Date hireDate = rs.getDate("hire_date");
+        response.setHireDate(hireDate != null ? hireDate.toLocalDate() : null);
+
         response.setStatus(rs.getString("status"));
-        response.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
-        response.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
+
+        Timestamp createdAt = rs.getTimestamp("created_at");
+        response.setCreatedAt(createdAt != null ? createdAt.toLocalDateTime() : null);
+
+        Timestamp updatedAt = rs.getTimestamp("updated_at");
+        response.setUpdatedAt(updatedAt != null ? updatedAt.toLocalDateTime() : null);
+
         return response;
     }
 }
