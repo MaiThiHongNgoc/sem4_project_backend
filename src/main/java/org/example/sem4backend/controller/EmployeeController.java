@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +28,7 @@ public class EmployeeController {
     @Autowired
     private EmployeeService employeeService;
 
+    @PreAuthorize("hasAnyRole('Admin', 'Hr')")
     @GetMapping
     public ResponseEntity<ApiResponse<List<EmployeeResponse>>> getEmployees(
             @RequestParam(required = false) String status
@@ -36,6 +38,7 @@ public class EmployeeController {
         return new ResponseEntity<>(ApiResponse.success(ErrorCode.SUCCESS, employees), HttpStatus.OK);
     }
 
+    @PreAuthorize("hasAnyRole('Admin', 'Hr')")
     @PostMapping
     public ResponseEntity<ApiResponse<EmployeeResponse>> addEmployee(
             @RequestBody @Valid EmployeeRequest request,
@@ -58,37 +61,34 @@ public class EmployeeController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('Admin', 'Hr')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<EmployeeResponse>> updateEmployee(
             @PathVariable UUID id,
             @RequestBody @Valid EmployeeRequest request,
             BindingResult bindingResult
     ) {
-        logger.info("Received updateEmployee request for id={}", id);
         if (bindingResult.hasErrors()) {
             String errorMessage = bindingResult.getFieldErrors().stream()
                     .map(fieldError -> fieldError.getDefaultMessage())
                     .collect(Collectors.joining(", "));
-            logger.warn("Validation failed: {}", errorMessage);
             return new ResponseEntity<>(ApiResponse.error(ErrorCode.VALIDATION_FAILED, errorMessage), HttpStatus.BAD_REQUEST);
         }
         try {
             EmployeeResponse response = employeeService.updateEmployee(id, request);
             return new ResponseEntity<>(ApiResponse.success(ErrorCode.SUCCESS, response), HttpStatus.OK);
         } catch (IllegalStateException e) {
-            logger.warn("Update employee failed: {}", e.getMessage());
             return new ResponseEntity<>(ApiResponse.error(ErrorCode.OPERATION_FAILED, e.getMessage()), HttpStatus.BAD_REQUEST);
         }
     }
 
+    @PreAuthorize("hasAnyRole('Admin', 'Hr')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteEmployee(@PathVariable UUID id) {
-        logger.info("Received deleteEmployee request for id={}", id);
         try {
             employeeService.deleteEmployee(id);
             return new ResponseEntity<>(ApiResponse.success(ErrorCode.SUCCESS), HttpStatus.OK);
         } catch (IllegalStateException e) {
-            logger.warn("Delete employee failed: {}", e.getMessage());
             return new ResponseEntity<>(ApiResponse.error(ErrorCode.OPERATION_FAILED, e.getMessage()), HttpStatus.BAD_REQUEST);
         }
     }

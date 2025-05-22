@@ -1,6 +1,5 @@
 package org.example.sem4backend.config;
 
-
 import org.example.sem4backend.repository.UserRepository;
 import org.example.sem4backend.security.JwtTokenFilter;
 import org.springframework.context.annotation.Bean;
@@ -15,7 +14,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -36,22 +34,20 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers("/api/auth/**").permitAll()
-//                        .requestMatchers("/api/departments/**").permitAll()
-//                        .requestMatchers("/api/positions/**").permitAll()
-//                        .requestMatchers("/api/employees/**").permitAll()
-//                        .requestMatchers("/api/roles/**").permitAll()
-//                        .requestMatchers("/api/users/**").permitAll()
-//                        .requestMatchers("/api/password-reset/**").permitAll()
-//                        .requestMatchers("/api/locations/**").permitAll()
-                          .requestMatchers("/**").permitAll()
-                          .requestMatchers("/static/uploads/qr/").permitAll() // Cho phép truy cập tài nguyên tĩnh
-                          .anyRequest().authenticated()
+                        .requestMatchers(
+                                "/api/auth/login",
+                                "/api/password-reset/send-otp",
+                                "/api/password-reset/verify-otp/**",
+                                "/api/password-reset/reset-password/**",
+                                "/static/uploads/qr/**"
+                        ).permitAll()
+                        .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
@@ -67,14 +63,14 @@ public class SecurityConfig {
     }
 
     @Bean
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Transactional
     public UserDetailsService userDetailsService() {
-        return username -> userRepository.findByUsername(username)
+        return username -> userRepository.findByUsernameWithRole(username)
                 .map(user -> new org.springframework.security.core.userdetails.User(
                         user.getUsername(),
                         user.getPassword(),
                         List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority(
-                                "ROLE_" + (user.getRole() != null ? user.getRole().getRole_name() : "USER"))))
+                                "ROLE_" + (user.getRole() != null ? user.getRole().getRoleName() : "USER"))))
                 )
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
     }
@@ -83,6 +79,4 @@ public class SecurityConfig {
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
-
 }

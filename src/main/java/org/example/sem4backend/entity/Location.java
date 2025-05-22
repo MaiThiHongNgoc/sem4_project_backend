@@ -3,6 +3,7 @@ package org.example.sem4backend.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.GenericGenerator;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -18,8 +19,11 @@ import java.util.UUID;
 public class Location {
 
     @Id
-    @Column(name = "location_id", columnDefinition = "CHAR(36)")
-    UUID locationId;
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    @Column(name = "location_id", columnDefinition = "CHAR(36)", updatable = false, nullable = false)
+    private UUID locationId;
+
 
     @Column(name = "name", nullable = false)
     String name;
