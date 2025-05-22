@@ -67,7 +67,8 @@ public enum ErrorCode {
     INVALID_INPUT(HttpStatus.OK,"Invalid input."),
     OTP_VERIFIED_SUCCESSFULLY(HttpStatus.OK,"OTP verified successfully."),
     DUPLICATE_ENTRY(HttpStatus.CONFLICT, "Dữ liệu bị trùng lặp"),
-    DATA_INTEGRITY_VIOLATION(HttpStatus.BAD_REQUEST, "Vi phạm ràng buộc dữ liệu");
+    DATA_INTEGRITY_VIOLATION(HttpStatus.BAD_REQUEST, "Vi phạm ràng buộc dữ liệu"),
+    ROLE_NOT_FOUND(HttpStatus.OK, "Role not found");
 
 
 
