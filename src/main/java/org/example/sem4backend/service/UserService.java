@@ -54,13 +54,7 @@ public class UserService {
         return allUsers;
     }
 
-    public ApiResponse<UserResponse> register(@Valid UserRequest request, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            String errorMessage = bindingResult.getFieldErrors().stream()
-                    .map(fieldError -> fieldError.getDefaultMessage())
-                    .collect(Collectors.joining(", "));
-            return ApiResponse.error(ErrorCode.VALIDATION_FAILED, errorMessage);
-        }
+    public ApiResponse<UserResponse> register(UserRequest request) {
 
         String checkUsernameQuery = "SELECT COUNT(*) FROM users WHERE username = ?";
         Integer usernameCount = jdbcTemplate.queryForObject(checkUsernameQuery, Integer.class, request.getUsername());
@@ -86,13 +80,15 @@ public class UserService {
                     request.getRoleId()
             );
         } catch (Exception e) {
-            logger.error("Error adding user: ", e);
+            logger.error("Lỗi thêm user: ", e);
             return ApiResponse.error(ErrorCode.OPERATION_FAILED, "Lỗi thêm user: " + e.getMessage());
         }
 
         UserResponse user = getUserByUsername(request.getUsername());
-        return ApiResponse.success(ErrorCode.SUCCESS, user);
+
+        return ApiResponse.success(user);
     }
+
 
     public ApiResponse<UserResponse> updateUser(UUID userId, @Valid UserRequest request, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
