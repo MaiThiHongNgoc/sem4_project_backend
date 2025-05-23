@@ -45,19 +45,22 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             logger.debug("Found JWT token: {}", token);
             try {
                 if (jwtTokenProvider.validateToken(token)) {
-                    String username = jwtTokenProvider.getUsernameFromToken(token);
-                    String role = jwtTokenProvider.getRoleFromToken(token);
-                    logger.debug("Token valid for username: {}, role: {}", username, role);
+                    String userId = jwtTokenProvider.getUserIdFromToken(token);      // subject
+                    String username = jwtTokenProvider.getUsernameFromToken(token);  // claim
+                    String role = jwtTokenProvider.getRoleFromToken(token);          // claim
+
+                    logger.debug("Token valid - userId: {}, username: {}, role: {}", userId, username, role);
 
                     List<GrantedAuthority> authorities = List.of(
                             new SimpleGrantedAuthority("ROLE_" + role.toUpperCase())
                     );
 
                     UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(username, null, authorities);
+                            new UsernamePasswordAuthenticationToken(userId, null, authorities); // use userId
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authentication);
-                    logger.debug("Set authentication for user: {}", username);
+
+                    logger.debug("Set authentication for userId: {}", userId);
                 } else {
                     logger.debug("Invalid JWT token");
                 }

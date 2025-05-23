@@ -1,6 +1,8 @@
 package org.example.sem4backend.service;
 
 import com.google.zxing.WriterException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.example.sem4backend.entity.Location;
 import org.example.sem4backend.entity.QRInfo;
@@ -9,6 +11,8 @@ import org.example.sem4backend.repository.LocationRepository;
 import org.example.sem4backend.repository.QRInfoRepository;
 import org.example.sem4backend.repository.UserRepository;
 import org.example.sem4backend.util.QRCodeGenerator;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
@@ -25,6 +29,7 @@ public class QRInfoService {
     private final UserRepository userRepository;
 
     private static final Logger logger = LoggerFactory.getLogger(QRInfoService.class);
+
 
     @Scheduled(fixedRate = 5 * 60 * 1000)
     public void rotateQRCode() {
@@ -45,13 +50,16 @@ public class QRInfoService {
                 return;
             }
 
-            // 3. Tạo mã QR mới cho từng location
-            User admin = userRepository.findByUsername("Admin").orElse(null);
-            if (admin == null) {
-                logger.error("Admin user not found. Cannot proceed with QR rotation.");
+            // 3. Lấy user Admin mới nhất có role 'ADMIN' và status 'Active' (giới hạn 1 kết quả)
+            Pageable topOne = PageRequest.of(0, 1);
+            List<User> admins = userRepository.findByRoleNameOrderByCreatedAtDesc("ADMIN", topOne);
+            if (admins.isEmpty()) {
+                logger.error("No active admin user found, cannot rotate QR codes");
                 return;
             }
+            User adminRef = admins.get(0);
 
+            // 4. Tạo QR mới cho từng location
             for (Location location : locations) {
                 UUID qrId = UUID.randomUUID();
                 String qrCodeText = "QR-" + qrId + "-" + location.getName();
@@ -64,7 +72,7 @@ public class QRInfoService {
                 qrInfo.setActive(true);
                 qrInfo.setLocation(location);
                 qrInfo.setShift(determineShift(new Date()));
-                qrInfo.setCreatedBy(admin);
+                qrInfo.setCreatedBy(adminRef);
 
                 qrInfoRepository.save(qrInfo);
 
@@ -78,6 +86,7 @@ public class QRInfoService {
             logger.error("Error occurred while rotating QR code", e);
         }
     }
+
 
     private QRInfo.Shift determineShift(Date now) {
         Calendar calendar = Calendar.getInstance();
