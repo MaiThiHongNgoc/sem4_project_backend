@@ -26,11 +26,11 @@ public class QRInfo {
     String description;
 
     @ManyToOne
-    @JoinColumn(name = "location_id")
+    @JoinColumn(name = "location_id", nullable = false)
     Location location;
 
     @ManyToOne
-    @JoinColumn(name = "created_by")
+    @JoinColumn(name = "created_by", nullable = false)
     User createdBy;
 
     @Temporal(TemporalType.TIMESTAMP)
