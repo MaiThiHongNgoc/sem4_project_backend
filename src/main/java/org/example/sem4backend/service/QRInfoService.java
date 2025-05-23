@@ -1,6 +1,8 @@
 package org.example.sem4backend.service;
 
 import com.google.zxing.WriterException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.example.sem4backend.entity.Location;
 import org.example.sem4backend.entity.QRInfo;
@@ -9,10 +11,13 @@ import org.example.sem4backend.repository.LocationRepository;
 import org.example.sem4backend.repository.QRInfoRepository;
 import org.example.sem4backend.repository.UserRepository;
 import org.example.sem4backend.util.QRCodeGenerator;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.*;
 
 @Service
@@ -23,18 +28,38 @@ public class QRInfoService {
     private final LocationRepository locationRepository;
     private final UserRepository userRepository;
 
+    private static final Logger logger = LoggerFactory.getLogger(QRInfoService.class);
+
+
     @Scheduled(fixedRate = 5 * 60 * 1000)
     public void rotateQRCode() {
         try {
+            // 1. Đặt tất cả mã QR đang hoạt động thành INACTIVE
             List<QRInfo> activeQRCodes = qrInfoRepository.findByStatus(QRInfo.Status.ACTIVE);
             for (QRInfo qr : activeQRCodes) {
                 qr.setStatus(QRInfo.Status.INACTIVE);
-                qrInfoRepository.save(qr);
+                qr.setActive(false);
+            }
+            qrInfoRepository.saveAll(activeQRCodes);
+            logger.info("Deactivated {} active QR codes", activeQRCodes.size());
+
+            // 2. Lấy danh sách location
+            List<Location> locations = locationRepository.findAll();
+            if (locations.isEmpty()) {
+                logger.warn("No locations found to rotate QR codes");
+                return;
             }
 
-            List<Location> locations = locationRepository.findAll();
-            if (locations.isEmpty()) return;
+            // 3. Lấy user Admin mới nhất có role 'ADMIN' và status 'Active' (giới hạn 1 kết quả)
+            Pageable topOne = PageRequest.of(0, 1);
+            List<User> admins = userRepository.findByRoleNameOrderByCreatedAtDesc("ADMIN", topOne);
+            if (admins.isEmpty()) {
+                logger.error("No active admin user found, cannot rotate QR codes");
+                return;
+            }
+            User adminRef = admins.get(0);
 
+            // 4. Tạo QR mới cho từng location
             for (Location location : locations) {
                 UUID qrId = UUID.randomUUID();
                 String qrCodeText = "QR-" + qrId + "-" + location.getName();
@@ -47,21 +72,21 @@ public class QRInfoService {
                 qrInfo.setActive(true);
                 qrInfo.setLocation(location);
                 qrInfo.setShift(determineShift(new Date()));
-
-
-                User admin = userRepository.findByUsername("admin").orElse(null);
-                qrInfo.setCreatedBy(admin);
+                qrInfo.setCreatedBy(adminRef);
 
                 qrInfoRepository.save(qrInfo);
 
                 String filePath = "src/main/resources/static/uploads/qr/" + qrId + ".png";
                 QRCodeGenerator.generateQRCodeImage(qrCodeText, filePath);
+
+                logger.info("Generated QR code for location ID {}: {}", location.getLocationId(), qrCodeText);
             }
 
-        } catch (IOException | WriterException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            logger.error("Error occurred while rotating QR code", e);
         }
     }
+
 
     private QRInfo.Shift determineShift(Date now) {
         Calendar calendar = Calendar.getInstance();
