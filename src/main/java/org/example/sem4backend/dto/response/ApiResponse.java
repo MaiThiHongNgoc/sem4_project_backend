@@ -15,30 +15,35 @@ public class ApiResponse<T> {
     int code;
     String message;
     T result;
-    private ErrorCode errorCode;
+    ErrorCode errorCode;
 
     public static <T> ApiResponse<T> success(ErrorCode errorCode, T result) {
         return ApiResponse.<T>builder()
                 .code(errorCode.getStatus().value())
                 .message(errorCode.getMessage())
                 .result(result)
+                .errorCode(errorCode) // ✅ Gán errorCode
                 .build();
     }
 
-    public static <T> ApiResponse<T> success(ErrorCode code) {
-        return success(code, null);
+    public static <T> ApiResponse<T> success(ErrorCode errorCode) {
+        return success(errorCode, null);
     }
 
-    public boolean isSuccess() {
-        return errorCode == ErrorCode.SUCCESS;
+    public static <T> ApiResponse<T> success(T result) {
+        return success(ErrorCode.SUCCESS, result);
     }
 
-    // Phương thức error
     public static <T> ApiResponse<T> error(ErrorCode errorCode, String errorMessage) {
         return ApiResponse.<T>builder()
                 .code(errorCode.getStatus().value())
                 .message(errorMessage)
+                .errorCode(errorCode)
                 .result(null)
                 .build();
+    }
+
+    public boolean isSuccess() {
+        return errorCode == ErrorCode.SUCCESS;
     }
 }

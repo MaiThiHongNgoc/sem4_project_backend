@@ -7,8 +7,6 @@ import org.example.sem4backend.dto.response.ApiResponse;
 import org.example.sem4backend.dto.response.LoginResponse;
 import org.example.sem4backend.exception.ErrorCode;
 import org.example.sem4backend.service.AuthService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +18,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+
     private final AuthService authService;
 
     @PostMapping("/login")
@@ -29,27 +27,15 @@ public class AuthController {
             String errorMessage = bindingResult.getFieldErrors().stream()
                     .map(fieldError -> fieldError.getDefaultMessage())
                     .collect(Collectors.joining(", "));
-            return ApiResponse.<LoginResponse>builder()
-                    .code(HttpStatus.BAD_REQUEST.value())
-                    .message(errorMessage)
-                    .result(null)
-                    .build();
+            return ApiResponse.error(ErrorCode.VALIDATION_FAILED, errorMessage);
         }
-
 
         try {
             LoginResponse loginResponse = authService.login(request);
-            return ApiResponse.<LoginResponse>builder()
-                    .code(HttpStatus.OK.value())
-                    .message(ErrorCode.SUCCESS.getMessage())
-                    .result(loginResponse)
-                    .build();
+            return ApiResponse.success(ErrorCode.SUCCESS, loginResponse);
         } catch (RuntimeException e) {
-            return ApiResponse.<LoginResponse>builder()
-                    .code(HttpStatus.UNAUTHORIZED.value())
-                    .message(e.getMessage())
-                    .result(null)
-                    .build();
+            return ApiResponse.error(ErrorCode.UNAUTHORIZED, e.getMessage());
         }
     }
+
 }
