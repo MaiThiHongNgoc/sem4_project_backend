@@ -47,11 +47,17 @@ public class UserController {
             String errorMessage = bindingResult.getFieldErrors().stream()
                     .map(fieldError -> fieldError.getDefaultMessage())
                     .collect(Collectors.joining(", "));
-            return new ResponseEntity<>(ApiResponse.error(ErrorCode.VALIDATION_FAILED, errorMessage), HttpStatus.BAD_REQUEST);
+            return ResponseEntity
+                    .badRequest()
+                    .body(ApiResponse.error(ErrorCode.VALIDATION_FAILED, errorMessage));
         }
-        ApiResponse<UserResponse> response = userService.register(request, bindingResult);
-        return new ResponseEntity<>(response, response.isSuccess() ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST);
+
+        ApiResponse<UserResponse> response = userService.register(request);
+
+        HttpStatus status = response.isSuccess() ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST;
+        return ResponseEntity.status(status).body(response);
     }
+
 
     @PreAuthorize("hasAnyRole('Admin', 'Hr')")
     @PutMapping("/{userId}")
