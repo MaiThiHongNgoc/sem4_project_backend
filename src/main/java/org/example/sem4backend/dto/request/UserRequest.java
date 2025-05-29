@@ -3,6 +3,7 @@ package org.example.sem4backend.dto.request;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -15,10 +16,7 @@ public class UserRequest {
     String employeeId;
 
     @NotBlank(message = "Tên đăng nhập là bắt buộc")
-    @Pattern(
-            regexp = "^(\\p{Lu}\\p{L}+\\s){1,}\\p{Lu}\\p{L}+$",
-            message = "Tên đăng nhập phải viết hoa chữ cái đầu và phải có ít nhất hai từ (họ tên đầy đủ)"
-    )
+    @Size(min = 8, message = "Tên đăng nhập phải có ít nhất 8 ký tự")
     String username;
 
 
