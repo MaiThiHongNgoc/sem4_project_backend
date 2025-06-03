@@ -17,7 +17,14 @@ public class QRInfo {
 
     @Id
     @Column(name = "qr_info_id", columnDefinition = "CHAR(36)")
-    UUID qrInfoId = UUID.randomUUID();
+    String qrInfoId;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.qrInfoId == null) {
+            this.qrInfoId = UUID.randomUUID().toString();
+        }
+    }
 
     @Column(name = "qr_code", nullable = false, unique = true)
     String qrCode;
