@@ -59,8 +59,7 @@ public class AuthService {
         if (user.getRole() == null) {
             logger.error("User.getRole() is null for username: {}. Please check role_id in users table.",
                     user.getUsername());
-            throw new AppException(ErrorCode.ROLE_NOT_FOUND,
-                    "Người dùng chưa được gán vai trò hợp lệ. Vui lòng kiểm tra role_id trong bảng users.");
+            throw new AppException(ErrorCode.ROLE_NOT_FOUND,"Người dùng chưa được gán vai trò hợp lệ. Vui lòng kiểm tra role_id trong bảng users.");
         }
 
         if (user.getRole().getRoleId() == null) {
@@ -74,7 +73,7 @@ public class AuthService {
         logger.info("User role - ID: {}, Name: {}", roleId, roleName);
 
         String token = jwtTokenProvider.createToken(
-                user.getUserId(), // userId (subject)
+                user.getUserId().toString(), // userId (subject)
                 user.getUsername(),          // username (claim)
                 roleName                     // role (claim)
         );
@@ -83,6 +82,12 @@ public class AuthService {
         logger.info("User login completed - Username: {}", user.getUsername());
 
         return new LoginResponse(
+                user.getUserId(),
+                user.getUsername(),
+                user.getEmail(),
+                roleId,
+                user.getStatus() != null ? user.getStatus().name() : null,
+                token
         );
     }
 }
