@@ -37,7 +37,7 @@ public class UserController {
         return new ResponseEntity<>(ApiResponse.success(ErrorCode.SUCCESS, users), HttpStatus.OK);
     }
 
-    @PreAuthorize("hasAnyRole('Admin', 'Hr')")
+   // @PreAuthorize("hasAnyRole('Admin', 'Hr')")
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<UserResponse>> register(
             @RequestBody @Valid UserRequest request,

@@ -19,8 +19,14 @@ public class User {
 
     @Id
     @Column(name = "user_id", columnDefinition = "CHAR(36)")
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    UUID userId;
+    String userId;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.userId == null) {
+            this.userId = UUID.randomUUID().toString();
+        }
+    }
 
     @ManyToOne
     @JoinColumn(name = "employee_id")
