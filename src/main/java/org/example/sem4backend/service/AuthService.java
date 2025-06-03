@@ -74,7 +74,7 @@ public class AuthService {
         logger.info("User role - ID: {}, Name: {}", roleId, roleName);
 
         String token = jwtTokenProvider.createToken(
-                user.getUserId().toString(), // userId (subject)
+                user.getUserId(), // userId (subject)
                 user.getUsername(),          // username (claim)
                 roleName                     // role (claim)
         );
@@ -83,12 +83,6 @@ public class AuthService {
         logger.info("User login completed - Username: {}", user.getUsername());
 
         return new LoginResponse(
-                user.getUserId(),
-                user.getUsername(),
-                user.getEmail(),
-                roleId,
-                user.getStatus() != null ? user.getStatus().name() : null,
-                token
         );
     }
 }
