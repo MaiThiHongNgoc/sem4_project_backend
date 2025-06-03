@@ -68,7 +68,12 @@ public enum ErrorCode {
     OTP_VERIFIED_SUCCESSFULLY(HttpStatus.OK,"OTP verified successfully."),
     DUPLICATE_ENTRY(HttpStatus.CONFLICT, "Dữ liệu bị trùng lặp"),
     DATA_INTEGRITY_VIOLATION(HttpStatus.BAD_REQUEST, "Vi phạm ràng buộc dữ liệu"),
-    ROLE_NOT_FOUND(HttpStatus.OK, "Role not found");
+    ROLE_NOT_FOUND(HttpStatus.OK, "Role not found"),
+    // ==== Xử lý chung ====
+    INVALID_STATUS(HttpStatus.BAD_REQUEST, "Trạng thái không hợp lệ"),
+    ACCESS_DENIED(HttpStatus.BAD_REQUEST, "Bạn không có quyền truy cập");
+// ... các mã khác
+
 
 
 
