@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.util.UUID;
+import java.util.Date;
 
 @Entity
 @Table(name = "qr_attendances")
@@ -16,7 +16,14 @@ public class QRAttendance {
 
     @Id
     @Column(name = "qr_id", columnDefinition = "CHAR(36)")
-    UUID qrId;
+    String qrId;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.qrId == null) {
+            this.qrId = java.util.UUID.randomUUID().toString();
+        }
+    }
 
     @ManyToOne
     @JoinColumn(name = "employee_id", nullable = false)
@@ -26,9 +33,13 @@ public class QRAttendance {
     @JoinColumn(name = "qr_info_id")
     QRInfo qrInfo;
 
-    @Column(name = "scan_time", nullable = false, updatable = false)
+    @Column(name = "scan_time", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
-    java.util.Date scanTime;
+    Date scanTime;
+
+    @Column(name = "attendance_date", nullable = false)
+    @Temporal(TemporalType.DATE)
+    Date attendanceDate;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -40,7 +51,11 @@ public class QRAttendance {
 
     public enum Status {
         CheckIn,
-        CheckOut
+        CheckOut,
+        Present,
+        Late,
+        Absent,
+        On_Leave
     }
 
     public enum ActiveStatus {
