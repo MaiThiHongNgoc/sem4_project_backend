@@ -86,11 +86,9 @@ public class AuthService {
                 user.getUsername(),
                 user.getEmail(),
                 user.getRole().getRoleId().toString(),
-                roleId,
                 user.getStatus() != null ? user.getStatus().name() : null,
                 token
         );
     }
-}
 }
 
