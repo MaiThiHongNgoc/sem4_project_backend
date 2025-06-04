@@ -1,12 +1,19 @@
 package org.example.sem4backend.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.example.sem4backend.dto.FaceAttendanceRequest;
+import org.example.sem4backend.entity.Employee;
 import org.example.sem4backend.entity.QRAttendance;
+import org.example.sem4backend.repository.EmployeeRepository;
 import org.example.sem4backend.service.QRAttendanceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,6 +24,34 @@ public class QRAttendanceController {
 
     @Autowired
     private QRAttendanceService qrAttendanceService;
+
+    @Autowired
+    private EmployeeRepository employeeRepository;
+
+    @PostMapping("/face")
+    public ResponseEntity<?> faceAttendance(@RequestBody FaceAttendanceRequest request) {
+        if (request.getEmployeeId() == null || request.getImageBase64() == null ||
+                request.getLatitude() == null || request.getLongitude() == null) {
+            return ResponseEntity.badRequest().body("Missing required fields");
+        }
+
+        Employee employee = employeeRepository.findById(request.getEmployeeId())
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
+
+        // Tạo đối tượng QRAttendance
+        QRAttendance attendance = new QRAttendance();
+        attendance.setEmployee(employee);
+        attendance.setLatitude(BigDecimal.valueOf(request.getLatitude()));
+        attendance.setLongitude(BigDecimal.valueOf(request.getLongitude()));
+        attendance.setFaceRecognitionImage(request.getImageBase64());
+        attendance.setAttendanceDate(Date.from(Instant.now()));
+        attendance.setAttendanceMethod(QRAttendance.AttendanceMethod.FaceGPS);
+        attendance.setActiveStatus(QRAttendance.ActiveStatus.Active);
+
+        QRAttendance saved = qrAttendanceService.create(attendance);
+        return ResponseEntity.ok(saved);
+    }
+
 
     // Lấy tất cả các bản ghi active
     @GetMapping("/active")
