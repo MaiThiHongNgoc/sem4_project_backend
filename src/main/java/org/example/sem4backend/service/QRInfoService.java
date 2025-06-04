@@ -104,11 +104,11 @@ public class QRInfoService {
         return qrInfoRepository.findAll();
     }
 
-    public QRInfo findById(UUID id) {
+    public QRInfo findById(String id) {
         return qrInfoRepository.findById(id).orElse(null);
     }
 
-    public QRInfo update(UUID id, QRInfo updatedQR) {
+    public QRInfo update(String id, QRInfo updatedQR) {
         QRInfo existing = findById(id);
         if (existing == null) return null;
 
@@ -121,7 +121,7 @@ public class QRInfoService {
         return qrInfoRepository.save(existing);
     }
 
-    public boolean softDelete(UUID id) {
+    public boolean softDelete(String id) {
         QRInfo qr = findById(id);
         if (qr != null) {
             qr.setStatus(QRInfo.Status.INACTIVE);
