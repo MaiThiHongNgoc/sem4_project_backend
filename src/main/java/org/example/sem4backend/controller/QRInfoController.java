@@ -22,19 +22,19 @@ public class QRInfoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<QRInfo> getById(@PathVariable UUID id) {
+    public ResponseEntity<QRInfo> getById(@PathVariable String id) {
         QRInfo qr = qrInfoService.findById(id);
         return qr != null ? ResponseEntity.ok(qr) : ResponseEntity.notFound().build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<QRInfo> update(@PathVariable UUID id, @RequestBody QRInfo updatedQR) {
+    public ResponseEntity<QRInfo> update(@PathVariable String id, @RequestBody QRInfo updatedQR) {
         QRInfo qr = qrInfoService.update(id, updatedQR);
         return qr != null ? ResponseEntity.ok(qr) : ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    public ResponseEntity<Void> delete(@PathVariable String id) {
         boolean deleted = qrInfoService.softDelete(id);
         return deleted ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
     }
