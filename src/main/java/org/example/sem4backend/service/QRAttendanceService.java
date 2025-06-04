@@ -39,30 +39,48 @@ public class QRAttendanceService {
     }
 
     // Tạo mới bản ghi QR Attendance
+    // service/QRAttendanceService.java (phần create)
     public QRAttendance create(QRAttendance qrAttendance) {
-        // Kiểm tra employee có tồn tại không
         if (qrAttendance.getEmployee() == null || qrAttendance.getEmployee().getEmployeeId() == null) {
             throw new RuntimeException("Employee or Employee ID is missing in the request");
         }
+
         String empId = String.valueOf(qrAttendance.getEmployee().getEmployeeId());
         Employee employee = employeeRepository.findById(empId)
                 .orElseThrow(() -> new RuntimeException("Employee not found with ID: " + empId));
+        qrAttendance.setEmployee(employee);
 
-        // Nếu qrInfo id khác null thì lấy entity, ngược lại set null
+        // Thiết lập QR Info nếu có
         if (qrAttendance.getQrInfo() != null && qrAttendance.getQrInfo().getQrInfoId() != null) {
-            QRInfo qrInfo = qrInfoRepository.findById(qrAttendance.getQrInfo().getQrInfoId())
-                    .orElse(null);
+            QRInfo qrInfo = qrInfoRepository.findById(qrAttendance.getQrInfo().getQrInfoId()).orElse(null);
             qrAttendance.setQrInfo(qrInfo);
         } else {
             qrAttendance.setQrInfo(null);
         }
 
-        // Các trường scanTime, attendanceDate, attendanceMethod, qrId sẽ được set trong prePersist
-        // Active status mặc định
+        // Kiểm tra: ít nhất phải có QR hoặc Face + GPS
+        boolean hasQR = qrAttendance.getQrInfo() != null;
+        boolean hasFace = qrAttendance.getFaceRecognitionImage() != null;
+        boolean hasGPS = qrAttendance.getLatitude() != null && qrAttendance.getLongitude() != null;
+
+        if (!hasQR && (!hasFace || !hasGPS)) {
+            throw new RuntimeException("Must provide either QR info or Face image with GPS");
+        }
+
+        // Xác định attendanceMethod
+        if (hasQR) {
+            qrAttendance.setAttendanceMethod(QRAttendance.AttendanceMethod.QR);
+        } else if (hasFace && hasGPS) {
+            qrAttendance.setAttendanceMethod(QRAttendance.AttendanceMethod.FaceGPS);
+        } else {
+            qrAttendance.setAttendanceMethod(QRAttendance.AttendanceMethod.Unknown);
+        }
+
         qrAttendance.setActiveStatus(QRAttendance.ActiveStatus.Active);
 
         return qrAttendanceRepository.save(qrAttendance);
     }
+
 
     // Cập nhật bản ghi QR Attendance theo qrId
     public QRAttendance update(String qrId, QRAttendance updateData) {
