@@ -2,6 +2,7 @@ package org.example.sem4backend.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,10 +15,6 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class LoginRequest {
     @NotBlank(message = "Tên đăng nhập là bắt buộc")
-    @Pattern(
-            regexp = "^(\\p{Lu}\\p{L}+\\s){1,}\\p{Lu}\\p{L}+$",
-            message = "Tên đăng nhập phải viết hoa chữ cái đầu và phải có ít nhất hai từ (họ tên đầy đủ)"
-    )
     String username;
 
 

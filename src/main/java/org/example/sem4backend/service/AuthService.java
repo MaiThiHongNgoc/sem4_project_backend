@@ -83,6 +83,12 @@ public class AuthService {
         logger.info("User login completed - Username: {}", user.getUsername());
 
         return new LoginResponse(
+                user.getUserId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getRole().getRoleId().toString(),
+                user.getStatus() != null ? user.getStatus().name() : null,
+                token
         );
     }
 }

@@ -14,7 +14,7 @@ import java.util.UUID;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class LoginResponse {
 
-    UUID userId;
+    String userId;
     String username;
     String email;
     String roleId;
