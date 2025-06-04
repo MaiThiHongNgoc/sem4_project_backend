@@ -3,19 +3,14 @@ package org.example.sem4backend.dto.response;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.util.UUID;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class LoginResponse {
-
-    String userId;
-    String username;
-    String email;
-    String roleId;
+public class LoginHistoryResponse {
+    String loginTime;
+    String ipAddress;
+    String deviceInfo;
     String status;
-    String token;
 }

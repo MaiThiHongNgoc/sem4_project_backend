@@ -16,7 +16,15 @@ public class UserLoginHistory {
 
     @Id
     @Column(name = "login_history_id", columnDefinition = "CHAR(36)")
-    UUID loginHistoryId;
+    private String loginHistoryId;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.loginHistoryId == null) {
+            this.loginHistoryId = UUID.randomUUID().toString();
+        }
+    }
+
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
