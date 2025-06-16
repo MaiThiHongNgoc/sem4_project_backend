@@ -2,12 +2,14 @@ package org.example.sem4backend.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.sem4backend.entity.QRInfo;
+import org.example.sem4backend.repository.QRInfoRepository;
 import org.example.sem4backend.service.QRInfoService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/qrcodes")
@@ -15,6 +17,8 @@ import java.util.UUID;
 public class QRInfoController {
 
     private final QRInfoService qrInfoService;
+    @Autowired
+    private QRInfoRepository qrInfoRepository;
 
     @GetMapping
     public List<QRInfo> getAll() {
@@ -43,4 +47,13 @@ public class QRInfoController {
     public List<QRInfo> search(@RequestParam("q") String keyword) {
         return qrInfoService.search(keyword);
     }
+
+    // QRInfoController.java
+    @GetMapping("/latest")
+    public ResponseEntity<?> getLatestQR() {
+        Optional<QRInfo> latest = qrInfoRepository.findTop1ByStatusOrderByCreatedAtDesc(QRInfo.Status.ACTIVE);
+        return ResponseEntity.ok(latest);
+    }
+
+
 }
