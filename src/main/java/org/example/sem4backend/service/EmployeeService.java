@@ -2,6 +2,7 @@ package org.example.sem4backend.service;
 
 import org.example.sem4backend.dto.request.EmployeeRequest;
 import org.example.sem4backend.dto.response.EmployeeResponse;
+import org.example.sem4backend.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,15 @@ public class EmployeeService {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+    @Autowired
+    private UserRepository userRepository;
+
+    public String getEmployeeIdByUserId(String userId) {
+        return userRepository.findById(userId)
+                .map(user -> user.getEmployee() != null ? user.getEmployee().getEmployeeId() : null)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with userId: " + userId));
+    }
+
 
     public List<EmployeeResponse> getEmployees(String status) {
         logger.info("Fetching employees with status={}", status);

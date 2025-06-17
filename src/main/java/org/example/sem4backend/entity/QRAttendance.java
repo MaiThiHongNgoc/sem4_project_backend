@@ -44,7 +44,7 @@ public class QRAttendance {
     @Temporal(TemporalType.DATE)
     Date attendanceDate;
 
-    @Column(name = "face_recognition_image")
+    @Column(name = "face_recognition_image",columnDefinition = "MEDIUMTEXT")
     String faceRecognitionImage;
 
     @Column(name = "latitude", precision = 10, scale = 8)
