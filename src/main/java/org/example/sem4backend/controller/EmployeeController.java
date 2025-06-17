@@ -28,6 +28,12 @@ public class EmployeeController {
     @Autowired
     private EmployeeService employeeService;
 
+    @GetMapping("/employee-id-by-user/{userId}")
+    public ResponseEntity<String> getEmployeeIdByUserId(@PathVariable String userId) {
+        String employeeId = employeeService.getEmployeeIdByUserId(userId);
+        return ResponseEntity.ok(employeeId);
+    }
+
     @PreAuthorize("hasAnyRole('Admin', 'Hr')")
     @GetMapping
     public ResponseEntity<ApiResponse<List<EmployeeResponse>>> getEmployees(
