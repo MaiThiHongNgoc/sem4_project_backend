@@ -25,7 +25,7 @@ public class Employee {
     @PrePersist
     public void prePersist() {
         if (this.employeeId == null) {
-            this.employeeId = java.util.UUID.randomUUID().toString();
+            this.employeeId = UUID.randomUUID().toString();
         }
     }
 

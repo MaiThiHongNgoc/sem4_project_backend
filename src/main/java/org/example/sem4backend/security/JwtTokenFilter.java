@@ -55,12 +55,14 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                             new SimpleGrantedAuthority("ROLE_" + role.toUpperCase())
                     );
 
+                    // ✅ SỬA TẠI ĐÂY: dùng username thay vì userId
                     UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(userId, null, authorities); // use userId
+                            new UsernamePasswordAuthenticationToken(username, null, authorities);
+
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                    logger.debug("Set authentication for userId: {}", userId);
+                    logger.debug("Set authentication for username: {}", username);
                 } else {
                     logger.debug("Invalid JWT token");
                 }

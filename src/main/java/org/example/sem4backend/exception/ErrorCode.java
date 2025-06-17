@@ -71,7 +71,10 @@ public enum ErrorCode {
     ROLE_NOT_FOUND(HttpStatus.OK, "Role not found"),
     // ==== Xử lý chung ====
     INVALID_STATUS(HttpStatus.BAD_REQUEST, "Trạng thái không hợp lệ"),
-    ACCESS_DENIED(HttpStatus.BAD_REQUEST, "Bạn không có quyền truy cập");
+    ACCESS_DENIED(HttpStatus.BAD_REQUEST, "Bạn không có quyền truy cập"),
+    INVALID_EMPLOYEE_ID(HttpStatus.BAD_REQUEST, "Invalid employee ID format"),
+    INVALID_LEAVE_TYPE(HttpStatus.BAD_REQUEST, "Invalid leave type"),
+    DATABASE_ERROR(HttpStatus.BAD_REQUEST, "Database error occurred");
 // ... các mã khác
 
 

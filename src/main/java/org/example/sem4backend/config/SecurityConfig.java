@@ -88,7 +88,7 @@ public class SecurityConfig {
                         user.getUsername(),
                         user.getPassword(),
                         List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority(
-                                "ROLE_" + (user.getRole() != null ? user.getRole().getRoleName() : "USER"))))
+                                "ROLE_" + (user.getRole() != null ? user.getRole().getRoleName() : "US   ER"))))
                 )
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
     }
