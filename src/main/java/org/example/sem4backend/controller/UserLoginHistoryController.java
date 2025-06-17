@@ -19,14 +19,14 @@ public class UserLoginHistoryController {
 
     private final UserLoginHistoryService service;
 
-    @GetMapping("/me")
+    @GetMapping("/userid")
     public ApiResponse<List<LoginHistoryResponse>> getMyLoginHistory(Authentication authentication) {
         String username = authentication.getName();
         List<UserLoginHistory> historyList = service.getByUsername(username);
 
         List<LoginHistoryResponse> responseList = historyList.stream()
                 .map(h -> LoginHistoryResponse.builder()
-                        .loginTime(h.getLoginTime())
+                        .loginTime(String.valueOf(h.getLoginTime()))
                         .ipAddress(h.getIpAddress())
                         .deviceInfo(h.getDeviceInfo())
                         .status(h.getStatus().name())

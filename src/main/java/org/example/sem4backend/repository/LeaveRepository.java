@@ -1,11 +1,9 @@
 package org.example.sem4backend.repository;
 
-import org.example.sem4backend.entity.Employee;
+import org.example.sem4backend.entity.Leave;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.UUID;
-
 @Repository
-public interface EmployeeRepository extends JpaRepository<Employee, String> {
+public interface LeaveRepository extends JpaRepository<Leave, String> {
 }

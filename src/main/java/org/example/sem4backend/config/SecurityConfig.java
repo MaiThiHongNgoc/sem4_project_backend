@@ -36,7 +36,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/auth/login",
-                                "/api/users/register",
                                 "/api/password-reset/send-otp",
                                 "/api/password-reset/verify-otp/**",
                                 "/api/password-reset/reset-password/**",
@@ -71,7 +70,7 @@ public class SecurityConfig {
                         user.getUsername(),
                         user.getPassword(),
                         List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority(
-                                "ROLE_" + (user.getRole() != null ? user.getRole().getRoleName() : "USER"))))
+                                "ROLE_" + (user.getRole() != null ? user.getRole().getRoleName() : "US   ER"))))
                 )
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
     }

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.Date;
 import java.util.UUID;
 
 @Entity
@@ -13,10 +14,16 @@ import java.util.UUID;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Leave {
-
     @Id
     @Column(name = "leave_id", columnDefinition = "CHAR(36)")
-    UUID leaveId;
+    String leaveId;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.leaveId == null) {
+            this.leaveId = UUID.randomUUID().toString();
+        }
+    }
 
     @ManyToOne
     @JoinColumn(name = "employee_id", nullable = false)
@@ -24,11 +31,11 @@ public class Leave {
 
     @Column(name = "leave_start_date", nullable = false)
     @Temporal(TemporalType.DATE)
-    java.util.Date leaveStartDate;
+    Date leaveStartDate;
 
     @Column(name = "leave_end_date", nullable = false)
     @Temporal(TemporalType.DATE)
-    java.util.Date leaveEndDate;
+    Date leaveEndDate;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "leave_type", nullable = false)
