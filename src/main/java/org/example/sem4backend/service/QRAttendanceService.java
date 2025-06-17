@@ -9,6 +9,7 @@ import org.example.sem4backend.repository.QRAttendanceRepository;
 import org.example.sem4backend.repository.QRInfoRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +59,7 @@ public class QRAttendanceService {
             qrAttendance.setQrInfo(null);
         }
 
-        // Kiểm tra: ít nhất phải có QR hoặc Face + GPS
+        // Kiểm tra hình thức chấm công
         boolean hasQR = qrAttendance.getQrInfo() != null;
         boolean hasFace = qrAttendance.getFaceRecognitionImage() != null;
         boolean hasGPS = qrAttendance.getLatitude() != null && qrAttendance.getLongitude() != null;
@@ -77,6 +78,24 @@ public class QRAttendanceService {
         }
 
         qrAttendance.setActiveStatus(QRAttendance.ActiveStatus.Active);
+
+        // === Xác định Checkin hay Checkout ===
+        LocalDate today = LocalDate.now();
+        List<QRAttendance> todayRecords = qrAttendanceRepository.findByEmployeeAndAttendanceDate(
+                employee,
+                java.sql.Date.valueOf(today)
+        );
+
+        boolean hasCheckIn = todayRecords.stream().anyMatch(r -> r.getStatus() == QRAttendance.Status.CheckIn);
+        boolean hasCheckOut = todayRecords.stream().anyMatch(r -> r.getStatus() == QRAttendance.Status.CheckOut);
+
+        if (!hasCheckIn) {
+            qrAttendance.setStatus(QRAttendance.Status.CheckIn);
+        } else if (!hasCheckOut) {
+            qrAttendance.setStatus(QRAttendance.Status.CheckOut);
+        } else {
+            throw new RuntimeException("Check-in and Check-out already recorded for today");
+        }
 
         return qrAttendanceRepository.save(qrAttendance);
     }

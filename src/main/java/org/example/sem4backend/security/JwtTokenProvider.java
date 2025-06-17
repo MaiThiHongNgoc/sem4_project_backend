@@ -13,14 +13,15 @@ import java.util.Date;
 public class JwtTokenProvider {
 
     private final SecretKey secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
-    private static final long validityInMilliseconds = 1800000;
+    private static final long validityInMilliseconds = 1800000; // 30 minutes
 
     public String createToken(String userId, String username, String role) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + validityInMilliseconds);
 
         return Jwts.builder()
-                .setSubject(userId)
+                .setSubject(userId) // Keep userId as subject
+                .claim("userId", userId) // Add userId as a separate claim
                 .claim("username", username)
                 .claim("role", role)
                 .setIssuedAt(now)
@@ -34,7 +35,15 @@ public class JwtTokenProvider {
                 .setSigningKey(secretKey)
                 .parseClaimsJws(token)
                 .getBody();
-        return claims.getSubject();
+        return claims.get("userId", String.class); // Retrieve userId claim
+    }
+
+    public String getSubjectFromToken(String token) {
+        Claims claims = Jwts.parser()
+                .setSigningKey(secretKey)
+                .parseClaimsJws(token)
+                .getBody();
+        return claims.getSubject(); // Retrieve subject (also userId)
     }
 
     public String getUsernameFromToken(String token) {
