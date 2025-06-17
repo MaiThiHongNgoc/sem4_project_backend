@@ -3,8 +3,6 @@ package org.example.sem4backend.dto.response;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.util.UUID;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

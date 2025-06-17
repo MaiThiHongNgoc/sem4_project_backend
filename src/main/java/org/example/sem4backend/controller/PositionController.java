@@ -76,7 +76,7 @@ public class PositionController {
     @PreAuthorize("hasAnyRole('Admin', 'Hr')")
     @DeleteMapping("/{positionId}")
     public ResponseEntity<ApiResponse<Void>> deletePosition(@PathVariable UUID positionId) {
-        ApiResponse<Void> response = positionService.deletePosition(positionId);
+           ApiResponse<Void> response = positionService.deletePosition(positionId);
         HttpStatus status = response.getErrorCode() == ErrorCode.SUCCESS ? HttpStatus.OK : HttpStatus.BAD_REQUEST;
         return new ResponseEntity<>(response, status);
     }

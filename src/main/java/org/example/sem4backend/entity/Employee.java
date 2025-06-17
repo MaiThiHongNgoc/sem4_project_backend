@@ -21,7 +21,14 @@ public class Employee {
 
     @Id
     @Column(name = "employee_id", columnDefinition = "CHAR(36)")
-    UUID employeeId;
+    String employeeId;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.employeeId == null) {
+            this.employeeId = UUID.randomUUID().toString();
+        }
+    }
 
     @Column(name = "full_name", nullable = false)
     String fullName;
