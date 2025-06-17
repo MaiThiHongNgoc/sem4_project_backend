@@ -15,7 +15,6 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class LoginRequest {
     @NotBlank(message = "Tên đăng nhập là bắt buộc")
-    @Size(min = 8, message = "Tên đăng nhập phải có ít nhất 8 ký tự")
     String username;
 
 

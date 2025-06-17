@@ -61,11 +61,11 @@ public class QRInfoService {
 
             // 4. Tạo QR mới cho từng location
             for (Location location : locations) {
-                UUID qrId = UUID.randomUUID();
+                String qrId = UUID.randomUUID().toString(); // Sửa tại đây
                 String qrCodeText = "QR-" + qrId + "-" + location.getName();
 
                 QRInfo qrInfo = new QRInfo();
-                qrInfo.setQrInfoId(qrId);
+                qrInfo.setQrInfoId(qrId); // Giờ qrInfoId là String
                 qrInfo.setQrCode(qrCodeText);
                 qrInfo.setCreatedAt(new Date());
                 qrInfo.setStatus(QRInfo.Status.ACTIVE);
@@ -81,6 +81,7 @@ public class QRInfoService {
 
                 logger.info("Generated QR code for location ID {}: {}", location.getLocationId(), qrCodeText);
             }
+
 
         } catch (Exception e) {
             logger.error("Error occurred while rotating QR code", e);
@@ -103,11 +104,11 @@ public class QRInfoService {
         return qrInfoRepository.findAll();
     }
 
-    public QRInfo findById(UUID id) {
+    public QRInfo findById(String id) {
         return qrInfoRepository.findById(id).orElse(null);
     }
 
-    public QRInfo update(UUID id, QRInfo updatedQR) {
+    public QRInfo update(String id, QRInfo updatedQR) {
         QRInfo existing = findById(id);
         if (existing == null) return null;
 
@@ -120,7 +121,7 @@ public class QRInfoService {
         return qrInfoRepository.save(existing);
     }
 
-    public boolean softDelete(UUID id) {
+    public boolean softDelete(String id) {
         QRInfo qr = findById(id);
         if (qr != null) {
             qr.setStatus(QRInfo.Status.INACTIVE);
