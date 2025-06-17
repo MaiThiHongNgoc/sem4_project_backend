@@ -7,7 +7,6 @@ import org.example.sem4backend.dto.response.ApiResponse;
 import org.example.sem4backend.dto.response.LoginResponse;
 import org.example.sem4backend.exception.ErrorCode;
 import org.example.sem4backend.service.AuthService;
-import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 

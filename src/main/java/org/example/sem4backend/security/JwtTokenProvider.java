@@ -13,15 +13,14 @@ import java.util.Date;
 public class JwtTokenProvider {
 
     private final SecretKey secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
-    private static final long validityInMilliseconds = 1800000; // 30 phút
+    private static final long validityInMilliseconds = 1800000;
 
-    // Tạo token có chứa user_id, username và role
     public String createToken(String userId, String username, String role) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + validityInMilliseconds);
 
         return Jwts.builder()
-                .setSubject(userId) // Đặt user_id làm subject
+                .setSubject(userId)
                 .claim("username", username)
                 .claim("role", role)
                 .setIssuedAt(now)
@@ -30,7 +29,6 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    // Lấy user_id từ token (subject)
     public String getUserIdFromToken(String token) {
         Claims claims = Jwts.parser()
                 .setSigningKey(secretKey)
@@ -39,7 +37,6 @@ public class JwtTokenProvider {
         return claims.getSubject();
     }
 
-    // Lấy username từ token (từ claim)
     public String getUsernameFromToken(String token) {
         Claims claims = Jwts.parser()
                 .setSigningKey(secretKey)
@@ -48,7 +45,6 @@ public class JwtTokenProvider {
         return claims.get("username", String.class);
     }
 
-    // Lấy role từ token
     public String getRoleFromToken(String token) {
         Claims claims = Jwts.parser()
                 .setSigningKey(secretKey)
@@ -57,7 +53,6 @@ public class JwtTokenProvider {
         return claims.get("role", String.class);
     }
 
-    // Kiểm tra token hợp lệ
     public boolean validateToken(String token) {
         try {
             Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);

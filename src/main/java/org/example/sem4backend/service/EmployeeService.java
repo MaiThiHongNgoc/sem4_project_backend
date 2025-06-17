@@ -138,7 +138,7 @@ public class EmployeeService {
 
     private EmployeeResponse mapToEmployeeResponse(ResultSet rs, int rowNum) throws SQLException {
         EmployeeResponse response = new EmployeeResponse();
-        response.setEmployeeId(UUID.fromString(rs.getString("employee_id")));
+        response.setEmployeeId(String.valueOf(UUID.fromString(rs.getString("employee_id"))));
         response.setFullName(rs.getString("full_name"));
         response.setGender(rs.getString("gender"));
 
