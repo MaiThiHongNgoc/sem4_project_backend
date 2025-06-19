@@ -9,6 +9,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "departments")
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
