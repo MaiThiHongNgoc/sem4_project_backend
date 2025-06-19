@@ -15,5 +15,7 @@ public interface QRInfoRepository extends JpaRepository<QRInfo, String>, JpaSpec
 
     Optional<QRInfo> findById(String qrInfoId);
     Optional<QRInfo> findTop1ByStatusOrderByCreatedAtDesc(QRInfo.Status status);
+    Optional<QRInfo> findByQrCode(String qrCode);
+
 
 }
