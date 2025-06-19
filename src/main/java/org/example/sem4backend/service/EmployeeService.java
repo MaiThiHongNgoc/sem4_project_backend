@@ -2,8 +2,12 @@ package org.example.sem4backend.service;
 
 import org.example.sem4backend.dto.request.EmployeeRequest;
 import org.example.sem4backend.dto.response.EmployeeResponse;
+<<<<<<< HEAD
 import org.example.sem4backend.entity.Employee;
 import org.example.sem4backend.repository.EmployeeRepository;
+=======
+import org.example.sem4backend.repository.UserRepository;
+>>>>>>> bddc12041b3af32dba5c203decd2b75ac76998ee
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +28,15 @@ public class EmployeeService {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+    @Autowired
+    private UserRepository userRepository;
+
+    public String getEmployeeIdByUserId(String userId) {
+        return userRepository.findById(userId)
+                .map(user -> user.getEmployee() != null ? user.getEmployee().getEmployeeId() : null)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with userId: " + userId));
+    }
+
 
     @Autowired
     private EmployeeRepository employeeRepository; // <-- Bổ sung dùng JPA repository
