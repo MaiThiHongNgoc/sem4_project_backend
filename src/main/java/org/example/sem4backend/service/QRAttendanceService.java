@@ -59,16 +59,25 @@ public class QRAttendanceService {
             qrAttendance.setQrInfo(null);
         }
 
-        // Kiểm tra hình thức chấm công
+        // Kiểm tra phương thức chấm công
         boolean hasQR = qrAttendance.getQrInfo() != null;
-        boolean hasFace = qrAttendance.getFaceRecognitionImage() != null;
+        boolean hasFace = qrAttendance.getFaceRecognitionImage() != null && !qrAttendance.getFaceRecognitionImage().isEmpty();
         boolean hasGPS = qrAttendance.getLatitude() != null && qrAttendance.getLongitude() != null;
 
-        if (!hasQR && (!hasFace || !hasGPS)) {
-            throw new RuntimeException("Must provide either QR info or Face image with GPS");
+        if (hasQR) {
+            qrAttendance.setAttendanceMethod(QRAttendance.AttendanceMethod.QR);
+        } else if (hasFace && hasGPS) {
+            qrAttendance.setAttendanceMethod(QRAttendance.AttendanceMethod.FaceGPS);
+        } else if (hasFace && !hasGPS) {
+            throw new RuntimeException("Face image requires GPS coordinates.");
+        } else if (!hasFace && hasGPS) {
+            throw new RuntimeException("GPS requires face image to be valid.");
+        } else {
+            throw new RuntimeException("Must provide either QR info or Face image with GPS.");
         }
 
-        // Xác định attendanceMethod
+
+        // Xác định phương thức chấm công
         if (hasQR) {
             qrAttendance.setAttendanceMethod(QRAttendance.AttendanceMethod.QR);
         } else if (hasFace && hasGPS) {
@@ -99,6 +108,7 @@ public class QRAttendanceService {
 
         return qrAttendanceRepository.save(qrAttendance);
     }
+
 
 
     // Cập nhật bản ghi QR Attendance theo qrId

@@ -31,7 +31,7 @@ public class QRInfoService {
     private static final Logger logger = LoggerFactory.getLogger(QRInfoService.class);
 
 
-    @Scheduled(fixedRate = 5 * 60 * 1000)
+    @Scheduled(fixedRate = 10 * 60 * 1000)
     public void rotateQRCode() {
         try {
             // 1. Đặt tất cả mã QR đang hoạt động thành INACTIVE
@@ -107,6 +107,11 @@ public class QRInfoService {
     public QRInfo findById(String id) {
         return qrInfoRepository.findById(id).orElse(null);
     }
+
+    public QRInfo findByQrCode(String qrCode) {
+        return qrInfoRepository.findByQrCode(qrCode).orElse(null);
+    }
+
 
     public QRInfo update(String id, QRInfo updatedQR) {
         QRInfo existing = findById(id);
