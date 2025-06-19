@@ -5,6 +5,7 @@ import org.example.sem4backend.dto.request.UserRequest;
 import org.example.sem4backend.dto.response.ApiResponse;
 import org.example.sem4backend.dto.response.UserResponse;
 import org.example.sem4backend.exception.ErrorCode;
+import org.example.sem4backend.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +28,12 @@ public class UserService {
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
+    // ✅ Lấy toàn bộ users từ stored procedure (có lọc theo status)
     public List<UserResponse> getUsers(String status) {
         logger.info("Fetching users with status={}", status);
 
@@ -54,8 +59,23 @@ public class UserService {
         return allUsers;
     }
 
-    public ApiResponse<UserResponse> register(UserRequest request) {
+    // ✅ Lấy toàn bộ users sử dụng native query (UserRepository)
+    public List<UserResponse> getAllUsersNative() {
+        logger.info("Fetching all users using native query");
 
+        return userRepository.findAllUserNative().stream().map(user -> {
+            UserResponse response = new UserResponse();
+            response.setUserId(UUID.fromString(user.getUserId()));
+            response.setUsername(user.getUsername());
+            response.setEmail(user.getEmail());
+            response.setRole(user.getRole().getRoleName());
+            response.setStatus(String.valueOf(user.getStatus()));
+            return response;
+        }).collect(Collectors.toList());
+    }
+
+    // ✅ Đăng ký user mới
+    public ApiResponse<UserResponse> register(UserRequest request) {
         String checkUsernameQuery = "SELECT COUNT(*) FROM users WHERE username = ?";
         Integer usernameCount = jdbcTemplate.queryForObject(checkUsernameQuery, Integer.class, request.getUsername());
         if (usernameCount != null && usernameCount > 0) {
@@ -85,11 +105,10 @@ public class UserService {
         }
 
         UserResponse user = getUserByUsername(request.getUsername());
-
         return ApiResponse.success(user);
     }
 
-
+    // ✅ Cập nhật user
     public ApiResponse<UserResponse> updateUser(UUID userId, @Valid UserRequest request, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             String errorMessage = bindingResult.getFieldErrors().stream()
@@ -130,6 +149,7 @@ public class UserService {
         return ApiResponse.success(ErrorCode.SUCCESS, user);
     }
 
+    // ✅ Xoá user
     public ApiResponse<Void> deleteUser(UUID userId) {
         try {
             jdbcTemplate.update(
@@ -143,6 +163,7 @@ public class UserService {
         }
     }
 
+    // ✅ Lấy thông tin user theo username
     private UserResponse getUserByUsername(String username) {
         String query = "SELECT user_id, username, email, role_id, status FROM users WHERE username = ?";
         try {

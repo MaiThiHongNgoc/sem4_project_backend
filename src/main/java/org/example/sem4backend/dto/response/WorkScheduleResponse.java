@@ -2,16 +2,19 @@ package org.example.sem4backend.dto.response;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.util.UUID;
+import java.util.Date;
 
 @Data
 @NoArgsConstructor
-@Builder
 @AllArgsConstructor
+@Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class DepartmentResponse {
-    UUID departmentId;
-    String departmentName;
+public class WorkScheduleResponse {
+    String scheduleId;
+    String employeeId;
+    String scheduleInfoId;
+    Date workDay;
+    Date startTime;
+    Date endTime;
     String status;
 }

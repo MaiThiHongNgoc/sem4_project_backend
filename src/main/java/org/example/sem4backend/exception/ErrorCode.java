@@ -74,7 +74,10 @@ public enum ErrorCode {
     ACCESS_DENIED(HttpStatus.BAD_REQUEST, "Bạn không có quyền truy cập"),
     INVALID_EMPLOYEE_ID(HttpStatus.BAD_REQUEST, "Invalid employee ID format"),
     INVALID_LEAVE_TYPE(HttpStatus.BAD_REQUEST, "Invalid leave type"),
-    DATABASE_ERROR(HttpStatus.BAD_REQUEST, "Database error occurred");
+    DATABASE_ERROR(HttpStatus.BAD_REQUEST, "Database error occurred"),
+    DUPLICATE_NAME(HttpStatus.BAD_REQUEST, "Duplicate name exists"),
+    NOT_FOUND(HttpStatus.BAD_REQUEST, "Resource not found");
+
 // ... các mã khác
 
 
