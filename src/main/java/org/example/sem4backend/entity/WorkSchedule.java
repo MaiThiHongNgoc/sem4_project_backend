@@ -9,6 +9,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "work_schedules")
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -16,7 +17,14 @@ public class WorkSchedule {
 
     @Id
     @Column(name = "schedule_id", columnDefinition = "CHAR(36)")
-    UUID scheduleId;
+    String scheduleId;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.scheduleId == null) {
+            this.scheduleId = UUID.randomUUID().toString();
+        }
+    }
 
     @ManyToOne
     @JoinColumn(name = "employee_id", referencedColumnName = "employee_id", nullable = false)

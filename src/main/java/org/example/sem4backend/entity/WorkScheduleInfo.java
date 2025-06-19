@@ -16,7 +16,13 @@ public class WorkScheduleInfo {
 
     @Id
     @Column(name = "schedule_info_id", columnDefinition = "CHAR(36)")
-    UUID scheduleInfoId;
+    String scheduleInfoId;
+    @PrePersist
+    public void prePersist() {
+        if (this.scheduleInfoId == null) {
+            this.scheduleInfoId = UUID.randomUUID().toString();
+        }
+    }
 
     @Column(name = "name", nullable = false, unique = true)
     String name;
