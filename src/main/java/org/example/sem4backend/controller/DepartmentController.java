@@ -88,4 +88,12 @@ public class DepartmentController {
             return new ResponseEntity<>(ApiResponse.error(ErrorCode.OPERATION_FAILED, e.getMessage()), HttpStatus.BAD_REQUEST);
         }
     }
+
+    @PreAuthorize("hasAnyRole('Admin', 'Hr')")
+    @GetMapping("/native")
+    public ResponseEntity<ApiResponse<List<DepartmentResponse>>> getAllDepartmentsNative() {
+        List<DepartmentResponse> departments = departmentService.getAllDepartmentsNative();
+        return new ResponseEntity<>(ApiResponse.success(ErrorCode.SUCCESS, departments), HttpStatus.OK);
+    }
+
 }

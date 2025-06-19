@@ -98,4 +98,12 @@ public class EmployeeController {
             return new ResponseEntity<>(ApiResponse.error(ErrorCode.OPERATION_FAILED, e.getMessage()), HttpStatus.BAD_REQUEST);
         }
     }
+
+    @PreAuthorize("hasAnyRole('Admin', 'Hr')")
+    @GetMapping("/native")
+    public ResponseEntity<ApiResponse<List<EmployeeResponse>>> getAllNativeEmployees() {
+        List<EmployeeResponse> employees = employeeService.getAllNativeEmployees();
+        return new ResponseEntity<>(ApiResponse.success(ErrorCode.SUCCESS, employees), HttpStatus.OK);
+    }
+
 }

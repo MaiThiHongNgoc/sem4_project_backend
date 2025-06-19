@@ -82,4 +82,12 @@ public class UserController {
         ApiResponse<Void> response = userService.deleteUser(userId);
         return new ResponseEntity<>(response, response.isSuccess() ? HttpStatus.OK : HttpStatus.BAD_REQUEST);
     }
+
+    @PreAuthorize("hasAnyRole('Admin', 'Hr')")
+    @GetMapping("/native")
+    public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUsersNative() {
+        List<UserResponse> users = userService.getAllUsersNative();
+        return new ResponseEntity<>(ApiResponse.success(ErrorCode.SUCCESS, users), HttpStatus.OK);
+    }
+
 }
