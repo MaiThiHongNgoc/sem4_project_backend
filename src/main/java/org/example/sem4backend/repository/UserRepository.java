@@ -1,6 +1,7 @@
 package org.example.sem4backend.repository;
 
 import jakarta.persistence.LockModeType;
+import org.example.sem4backend.entity.Employee;
 import org.example.sem4backend.entity.User;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -35,5 +36,7 @@ public interface UserRepository extends JpaRepository<User, String> {
     @Query("SELECT u FROM User u WHERE u.role.roleName = :roleName AND u.status = 'Active' ORDER BY u.createdAt DESC")
     List<User> findByRoleNameOrderByCreatedAtDesc(@Param("roleName") String roleName, Pageable pageable);
 
+    @Query(value = "SELECT * FROM users", nativeQuery = true)
+    List<User> findAllUserNative();
 
 }

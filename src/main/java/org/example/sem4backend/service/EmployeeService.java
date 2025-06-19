@@ -2,17 +2,21 @@ package org.example.sem4backend.service;
 
 import org.example.sem4backend.dto.request.EmployeeRequest;
 import org.example.sem4backend.dto.response.EmployeeResponse;
+<<<<<<< HEAD
+import org.example.sem4backend.entity.Employee;
+import org.example.sem4backend.repository.EmployeeRepository;
+=======
 import org.example.sem4backend.repository.UserRepository;
+>>>>>>> bddc12041b3af32dba5c203decd2b75ac76998ee
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Date;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -33,6 +37,15 @@ public class EmployeeService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found with userId: " + userId));
     }
 
+
+    @Autowired
+    private EmployeeRepository employeeRepository; // <-- Bổ sung dùng JPA repository
+
+    // Dùng JPA để lấy tất cả nhân viên (native query)
+    public List<EmployeeResponse> getAllNativeEmployees() {
+        List<Employee> employees = employeeRepository.findAllEmployeeNative();
+        return employees.stream().map(this::mapToEmployeeResponseFromEntity).toList();
+    }
 
     public List<EmployeeResponse> getEmployees(String status) {
         logger.info("Fetching employees with status={}", status);
@@ -58,8 +71,6 @@ public class EmployeeService {
     public EmployeeResponse addEmployee(EmployeeRequest request) {
         try {
             UUID employeeId = UUID.randomUUID();
-
-            // Convert LocalDate to java.sql.Date
             Date dob = request.getDateOfBirth() != null ? Date.valueOf(request.getDateOfBirth()) : null;
             Date hireDate = request.getHireDate() != null ? Date.valueOf(request.getHireDate()) : null;
 
@@ -120,10 +131,7 @@ public class EmployeeService {
 
     public void deleteEmployee(UUID employeeId) {
         try {
-            int rowsAffected = jdbcTemplate.update(
-                    "CALL sp_delete_employee(?)",
-                    employeeId.toString()
-            );
+            int rowsAffected = jdbcTemplate.update("CALL sp_delete_employee(?)", employeeId.toString());
             if (rowsAffected == 0) {
                 throw new IllegalStateException("Employee not found or already deleted");
             }
@@ -133,7 +141,7 @@ public class EmployeeService {
         }
     }
 
-    private EmployeeResponse getEmployeeById(UUID employeeId) {
+    public EmployeeResponse getEmployeeById(UUID employeeId) {
         try {
             return jdbcTemplate.queryForObject(
                     "SELECT * FROM employees WHERE employee_id = ?",
@@ -146,36 +154,45 @@ public class EmployeeService {
         }
     }
 
+    // Mapping dùng cho JdbcTemplate
     private EmployeeResponse mapToEmployeeResponse(ResultSet rs, int rowNum) throws SQLException {
         EmployeeResponse response = new EmployeeResponse();
-        response.setEmployeeId(String.valueOf(UUID.fromString(rs.getString("employee_id"))));
+        response.setEmployeeId(rs.getString("employee_id"));
         response.setFullName(rs.getString("full_name"));
         response.setGender(rs.getString("gender"));
-
-        Date dob = rs.getDate("date_of_birth");
-        response.setDateOfBirth(dob != null ? dob.toLocalDate() : null);
-
+        response.setDateOfBirth(rs.getDate("date_of_birth") != null ? rs.getDate("date_of_birth").toLocalDate() : null);
         response.setPhone(rs.getString("phone"));
         response.setAddress(rs.getString("address"));
         response.setImg(rs.getString("img"));
-
-        String departmentId = rs.getString("department_id");
-        response.setDepartmentId(departmentId != null ? UUID.fromString(departmentId) : null);
-
-        String positionId = rs.getString("position_id");
-        response.setPositionId(positionId != null ? UUID.fromString(positionId) : null);
-
-        Date hireDate = rs.getDate("hire_date");
-        response.setHireDate(hireDate != null ? hireDate.toLocalDate() : null);
-
+        response.setDepartmentId(rs.getString("department_id") != null ? UUID.fromString(rs.getString("department_id")) : null);
+        response.setPositionId(rs.getString("position_id") != null ? UUID.fromString(rs.getString("position_id")) : null);
+        response.setHireDate(rs.getDate("hire_date") != null ? rs.getDate("hire_date").toLocalDate() : null);
         response.setStatus(rs.getString("status"));
-
-        Timestamp createdAt = rs.getTimestamp("created_at");
-        response.setCreatedAt(createdAt != null ? createdAt.toLocalDateTime() : null);
-
-        Timestamp updatedAt = rs.getTimestamp("updated_at");
-        response.setUpdatedAt(updatedAt != null ? updatedAt.toLocalDateTime() : null);
-
+        response.setCreatedAt(rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toLocalDateTime() : null);
+        response.setUpdatedAt(rs.getTimestamp("updated_at") != null ? rs.getTimestamp("updated_at").toLocalDateTime() : null);
         return response;
     }
+
+    // Mapping dùng cho JPA entity (EmployeeRepository.findAllEmployeeNative)
+    private EmployeeResponse mapToEmployeeResponseFromEntity(Employee employee) {
+        EmployeeResponse response = new EmployeeResponse();
+        response.setEmployeeId(employee.getEmployeeId());
+        response.setFullName(employee.getFullName());
+        response.setGender(String.valueOf(employee.getGender()));
+        response.setDateOfBirth(employee.getDateOfBirth());
+        response.setPhone(employee.getPhone());
+        response.setAddress(employee.getAddress());
+        response.setImg(employee.getImg());
+
+        // Sửa ở đây: lấy ID từ entity liên kết
+        response.setDepartmentId(employee.getDepartment() != null ? employee.getDepartment().getDepartmentId() : null);
+        response.setPositionId(employee.getPosition() != null ? employee.getPosition().getPositionId() : null);
+
+        response.setHireDate(employee.getHireDate());
+        response.setStatus(String.valueOf(employee.getStatus()));
+        response.setCreatedAt(employee.getCreatedAt());
+        response.setUpdatedAt(employee.getUpdatedAt());
+        return response;
+    }
+
 }
