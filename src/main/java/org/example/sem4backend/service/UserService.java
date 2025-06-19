@@ -59,7 +59,6 @@ public class UserService {
         return allUsers;
     }
 
-    // ✅ Lấy toàn bộ users sử dụng native query (UserRepository)
     public List<UserResponse> getAllUsersNative() {
         logger.info("Fetching all users using native query");
 
@@ -68,7 +67,14 @@ public class UserService {
             response.setUserId(UUID.fromString(user.getUserId()));
             response.setUsername(user.getUsername());
             response.setEmail(user.getEmail());
-            response.setRole(user.getRole().getRoleName());
+
+            if (user.getRole() != null) {
+                response.setRole(user.getRole().getRoleName());
+            } else {
+                logger.warn("⚠️ User {} has no role assigned!", user.getUsername());
+                response.setRole(null);
+            }
+
             response.setStatus(String.valueOf(user.getStatus()));
             return response;
         }).collect(Collectors.toList());
@@ -149,7 +155,6 @@ public class UserService {
         return ApiResponse.success(ErrorCode.SUCCESS, user);
     }
 
-    // ✅ Xoá user
     public ApiResponse<Void> deleteUser(UUID userId) {
         try {
             jdbcTemplate.update(
