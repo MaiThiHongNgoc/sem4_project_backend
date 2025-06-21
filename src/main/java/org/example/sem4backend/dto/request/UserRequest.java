@@ -16,7 +16,6 @@ public class UserRequest {
     String employeeId;
 
     @NotBlank(message = "Tên đăng nhập là bắt buộc")
-    @Size(min = 8, message = "Tên đăng nhập phải có ít nhất 8 ký tự")
     String username;
 
 
