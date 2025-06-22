@@ -16,7 +16,13 @@ public class Attendance {
 
     @Id
     @Column(name = "attendance_id", columnDefinition = "CHAR(36)")
-    UUID attendanceId;
+    String attendanceId;
+    @PrePersist
+    public void prePersist() {
+        if (this.attendanceId == null) {
+            this.attendanceId = UUID.randomUUID().toString();
+        }
+    }
 
     @ManyToOne
     @JoinColumn(name = "employee_id", nullable = false)
