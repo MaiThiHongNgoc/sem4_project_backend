@@ -27,8 +27,6 @@ public class LocationService {
 
     public Location createLocation(Location location) {
         location.setLocationId(null); // Let UUID be generated
-        String userId = getCurrentUserId();
-        location.setCreatedBy(userId);
         return locationRepository.save(location);
     }
 
