@@ -80,7 +80,7 @@ public class PositionController {
         HttpStatus status = response.getErrorCode() == ErrorCode.SUCCESS ? HttpStatus.OK : HttpStatus.BAD_REQUEST;
         return new ResponseEntity<>(response, status);
     }
-    
+
     @GetMapping("/{positionId}")
     public ResponseEntity<ApiResponse<PositionResponse>> getPositionById(@PathVariable UUID positionId) {
         ApiResponse<PositionResponse> response = positionService.getPositionById(positionId);

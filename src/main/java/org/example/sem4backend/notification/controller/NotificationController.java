@@ -5,6 +5,7 @@ import org.example.sem4backend.notification.service.FirebasePushService;
 import org.example.sem4backend.notification.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,6 +29,7 @@ public class NotificationController {
     private UserFCMTokenRepository tokenRepo;
 
     // ✅ Gửi push + lưu Firestore theo nhiều role
+    @PreAuthorize("hasAnyRole('Admin', 'Hr')")
     @PostMapping("/push-to-roles")
     public ResponseEntity<String> pushToRoles(@RequestBody Map<String, Object> payload) {
         String title = (String) payload.get("title");
@@ -49,6 +51,7 @@ public class NotificationController {
     }
 
     // ✅ Gửi push đến 1 user cụ thể
+    @PreAuthorize("hasAnyRole('Admin', 'Hr')")
     @PostMapping("/push")
     public ResponseEntity<String> pushToUser(@RequestBody Map<String, String> payload) throws IOException {
         firebasePushService.sendPushNotification(
@@ -60,6 +63,7 @@ public class NotificationController {
     }
 
     // ✅ Lưu Firestore thông báo không gửi push
+    @PreAuthorize("hasAnyRole('Admin', 'Hr')")
     @PostMapping("/save")
     public ResponseEntity<String> saveOnly(@RequestBody Map<String, Object> payload) {
         String title = (String) payload.get("title");
