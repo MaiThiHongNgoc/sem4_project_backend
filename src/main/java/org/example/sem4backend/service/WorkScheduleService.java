@@ -94,11 +94,14 @@ public class WorkScheduleService {
         return WorkScheduleResponse.builder()
                 .scheduleId(schedule.getScheduleId())
                 .employeeId(schedule.getEmployee().getEmployeeId())
+                .employeeName(schedule.getEmployee().getFullName()) // hoặc .getName() tùy field
                 .scheduleInfoId(schedule.getScheduleInfo() != null ? schedule.getScheduleInfo().getScheduleInfoId() : null)
+                .scheduleInfoName(schedule.getScheduleInfo() != null ? schedule.getScheduleInfo().getName() : null)
                 .workDay(schedule.getWorkDay())
                 .startTime(schedule.getStartTime())
                 .endTime(schedule.getEndTime())
                 .status(schedule.getStatus().name())
                 .build();
     }
+
 }

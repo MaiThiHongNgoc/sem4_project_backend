@@ -14,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.example.sem4backend.dto.request.ChangePasswordRequest;
+
 
 import java.util.List;
 import java.util.UUID;
@@ -88,6 +90,16 @@ public class UserController {
     public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUsersNative() {
         List<UserResponse> users = userService.getAllUsersNative();
         return new ResponseEntity<>(ApiResponse.success(ErrorCode.SUCCESS, users), HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasAnyRole('Admin', 'Hr','User')")
+    @PutMapping("/{userId}/change-password")
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            @PathVariable String userId,
+            @RequestBody @Valid ChangePasswordRequest request
+    ) {
+        ApiResponse<Void> response = userService.changePassword(userId, request);
+        return ResponseEntity.status(response.isSuccess() ? HttpStatus.OK : HttpStatus.BAD_REQUEST).body(response);
     }
 
 }
