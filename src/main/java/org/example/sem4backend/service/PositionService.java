@@ -47,6 +47,26 @@ public class PositionService {
         return allResponses;
     }
 
+    public ApiResponse<PositionResponse> getPositionById(UUID positionId) {
+        try {
+            List<Position> positions = positionRepository.findAllPositionNative();
+            Position position = positions.stream()
+                    .filter(p -> p.getPositionId().equals(positionId))
+                    .findFirst()
+                    .orElse(null);
+
+            if (position == null) {
+                return ApiResponse.error(ErrorCode.NOT_FOUND, "Không tìm thấy vị trí với ID đã cho");
+            }
+
+            return ApiResponse.success(ErrorCode.SUCCESS, mapToResponse(position));
+        } catch (Exception e) {
+            logger.error("Error fetching position by id: ", e);
+            return ApiResponse.error(ErrorCode.OPERATION_FAILED, "Lỗi khi tìm position: " + e.getMessage());
+        }
+    }
+
+
     public ApiResponse<PositionResponse> addPosition(PositionRequest request) {
         try {
             jdbcTemplate.update("CALL sp_add_position(?)", request.getPositionName());

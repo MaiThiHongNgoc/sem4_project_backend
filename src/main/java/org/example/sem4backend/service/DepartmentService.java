@@ -120,7 +120,7 @@ public class DepartmentService {
     }
 
     // ✅ 7. Tìm theo ID
-    private DepartmentResponse getDepartmentById(UUID departmentId) {
+    public DepartmentResponse getDepartmentById(UUID departmentId) {
         try {
             return jdbcTemplate.queryForObject(
                     "SELECT department_id, department_name, status FROM departments WHERE department_id = ?",
