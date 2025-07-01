@@ -13,8 +13,8 @@ import java.util.UUID;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class EmployeeHistoryRequest {
     String employeeId;
-    UUID departmentId;
-    UUID positionId;
+    String departmentId;
+    String positionId;
     String startDate;
     String endDate;
     String reason;

@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -30,7 +31,6 @@ public class PositionService {
     public List<PositionResponse> getPositions(String status) {
         logger.info("Fetching positions with status={}", status);
 
-        // Gọi native SQL qua JPA repository
         List<Position> positions = positionRepository.findAllPositionNative();
 
         List<PositionResponse> allResponses = positions.stream()
@@ -49,12 +49,8 @@ public class PositionService {
 
     public ApiResponse<PositionResponse> addPosition(PositionRequest request) {
         try {
-            jdbcTemplate.update(
-                    "CALL sp_add_position(?)",
-                    request.getPositionName()
-            );
+            jdbcTemplate.update("CALL sp_add_position(?)", request.getPositionName());
 
-            // Lấy lại position vừa thêm qua native query
             List<Position> positions = positionRepository.findAllPositionNative();
             Position latest = positions.stream()
                     .filter(p -> p.getPositionName().equalsIgnoreCase(request.getPositionName()))
@@ -67,18 +63,14 @@ public class PositionService {
 
             return ApiResponse.success(ErrorCode.SUCCESS, mapToResponse(latest));
         } catch (Exception e) {
-            logger.error("Error adding position: ", e);
+            logger.error("Lỗi thêm position: ", e);
             return ApiResponse.error(ErrorCode.OPERATION_FAILED, "Lỗi thêm position: " + e.getMessage());
         }
     }
 
-    public ApiResponse<PositionResponse> updatePosition(UUID positionId, PositionRequest request) {
+    public ApiResponse<PositionResponse> updatePosition(String positionId, PositionRequest request) {
         try {
-            jdbcTemplate.update(
-                    "CALL sp_update_position(?, ?)",
-                    positionId.toString(),
-                    request.getPositionName()
-            );
+            jdbcTemplate.update("CALL sp_update_position(?, ?)", positionId.toString(), request.getPositionName());
 
             List<Position> positions = positionRepository.findAllPositionNative();
             Position updated = positions.stream()
@@ -92,20 +84,24 @@ public class PositionService {
 
             return ApiResponse.success(ErrorCode.SUCCESS, mapToResponse(updated));
         } catch (Exception e) {
-            logger.error("Error updating position: ", e);
+            logger.error("Lỗi cập nhật position: ", e);
             return ApiResponse.error(ErrorCode.OPERATION_FAILED, "Lỗi cập nhật position: " + e.getMessage());
         }
     }
 
-    public ApiResponse<Void> deletePosition(UUID positionId) {
+    public ApiResponse<Void> deletePosition(String positionId) {
         try {
-            jdbcTemplate.update(
-                    "CALL sp_delete_position(?)",
-                    positionId.toString()
-            );
+            logger.info("Gọi stored procedure sp_delete_position với id: {}", positionId);
+            jdbcTemplate.update("CALL sp_delete_position(?)", positionId.toString());
+
             return ApiResponse.success(ErrorCode.SUCCESS);
         } catch (Exception e) {
-            logger.error("Error deleting position: ", e);
+            if (e.getCause() instanceof SQLException sqlEx && "45000".equals(sqlEx.getSQLState())) {
+                logger.warn("Stored procedure báo lỗi logic: {}", sqlEx.getMessage());
+                return ApiResponse.error(ErrorCode.NOT_FOUND, sqlEx.getMessage());
+            }
+
+            logger.error("Lỗi khi xóa position: ", e);
             return ApiResponse.error(ErrorCode.OPERATION_FAILED, "Lỗi xóa position: " + e.getMessage());
         }
     }

@@ -25,8 +25,12 @@ public class EmployeeService {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private EmployeeRepository employeeRepository;
 
     public String getEmployeeIdByUserId(String userId) {
         return userRepository.findById(userId)
@@ -34,11 +38,6 @@ public class EmployeeService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found with userId: " + userId));
     }
 
-
-    @Autowired
-    private EmployeeRepository employeeRepository; // <-- Bổ sung dùng JPA repository
-
-    // Dùng JPA để lấy tất cả nhân viên (native query)
     public List<EmployeeResponse> getAllNativeEmployees() {
         List<Employee> employees = employeeRepository.findAllEmployeeNative();
         return employees.stream().map(this::mapToEmployeeResponseFromEntity).toList();
@@ -47,11 +46,16 @@ public class EmployeeService {
     public List<EmployeeResponse> getEmployees(String status) {
         logger.info("Fetching employees with status={}", status);
 
-        String baseQuery = "SELECT * FROM employees";
+        String baseQuery = """
+            SELECT e.*, d.department_name, p.position_name
+            FROM employees e
+            LEFT JOIN departments d ON e.department_id = d.department_id
+            LEFT JOIN positions p ON e.position_id = p.position_id
+        """;
         List<Object> params = new ArrayList<>();
 
         if (status != null && (status.equalsIgnoreCase("Active") || status.equalsIgnoreCase("Inactive"))) {
-            baseQuery += " WHERE status = ?";
+            baseQuery += " WHERE e.status = ?";
             params.add(status);
         }
 
@@ -99,10 +103,9 @@ public class EmployeeService {
     public EmployeeResponse updateEmployee(UUID employeeId, EmployeeRequest request) {
         try {
             Date dob = request.getDateOfBirth() != null ? Date.valueOf(request.getDateOfBirth()) : null;
-            Date hireDate = request.getHireDate() != null ? Date.valueOf(request.getHireDate()) : null;
 
             jdbcTemplate.update(
-                    "CALL sp_update_employee(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    "CALL sp_update_employee(?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     employeeId.toString(),
                     request.getFullName(),
                     request.getGender(),
@@ -111,8 +114,7 @@ public class EmployeeService {
                     request.getAddress(),
                     request.getImg(),
                     request.getDepartmentId() != null ? request.getDepartmentId().toString() : null,
-                    request.getPositionId() != null ? request.getPositionId().toString() : null,
-                    hireDate
+                    request.getPositionId() != null ? request.getPositionId().toString() : null
             );
 
             EmployeeResponse response = getEmployeeById(employeeId);
@@ -141,7 +143,13 @@ public class EmployeeService {
     public EmployeeResponse getEmployeeById(UUID employeeId) {
         try {
             return jdbcTemplate.queryForObject(
-                    "SELECT * FROM employees WHERE employee_id = ?",
+                    """
+                    SELECT e.*, d.department_name, p.position_name
+                    FROM employees e
+                    LEFT JOIN departments d ON e.department_id = d.department_id
+                    LEFT JOIN positions p ON e.position_id = p.position_id
+                    WHERE e.employee_id = ?
+                    """,
                     this::mapToEmployeeResponse,
                     employeeId.toString()
             );
@@ -151,7 +159,6 @@ public class EmployeeService {
         }
     }
 
-    // Mapping dùng cho JdbcTemplate
     private EmployeeResponse mapToEmployeeResponse(ResultSet rs, int rowNum) throws SQLException {
         EmployeeResponse response = new EmployeeResponse();
         response.setEmployeeId(rs.getString("employee_id"));
@@ -161,8 +168,12 @@ public class EmployeeService {
         response.setPhone(rs.getString("phone"));
         response.setAddress(rs.getString("address"));
         response.setImg(rs.getString("img"));
-        response.setDepartmentId(rs.getString("department_id") != null ? UUID.fromString(rs.getString("department_id")) : null);
-        response.setPositionId(rs.getString("position_id") != null ? UUID.fromString(rs.getString("position_id")) : null);
+
+        response.setDepartmentId(rs.getString("department_id"));
+        response.setDepartmentName(rs.getString("department_name"));
+        response.setPositionId(rs.getString("position_id"));
+        response.setPositionName(rs.getString("position_name"));
+
         response.setHireDate(rs.getDate("hire_date") != null ? rs.getDate("hire_date").toLocalDate() : null);
         response.setStatus(rs.getString("status"));
         response.setCreatedAt(rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toLocalDateTime() : null);
@@ -170,7 +181,7 @@ public class EmployeeService {
         return response;
     }
 
-    // Mapping dùng cho JPA entity (EmployeeRepository.findAllEmployeeNative)
+
     private EmployeeResponse mapToEmployeeResponseFromEntity(Employee employee) {
         EmployeeResponse response = new EmployeeResponse();
         response.setEmployeeId(employee.getEmployeeId());
@@ -181,9 +192,19 @@ public class EmployeeService {
         response.setAddress(employee.getAddress());
         response.setImg(employee.getImg());
 
-        // Sửa ở đây: lấy ID từ entity liên kết
-        response.setDepartmentId(employee.getDepartment() != null ? employee.getDepartment().getDepartmentId() : null);
-        response.setPositionId(employee.getPosition() != null ? employee.getPosition().getPositionId() : null);
+        // Không dùng UUID.fromString vì ID là String
+        response.setDepartmentId(employee.getDepartment() != null
+                ? employee.getDepartment().getDepartmentId()
+                : null);
+        response.setDepartmentName(employee.getDepartment() != null
+                ? employee.getDepartment().getDepartmentName()
+                : null);
+        response.setPositionId(employee.getPosition() != null
+                ? employee.getPosition().getPositionId()
+                : null);
+        response.setPositionName(employee.getPosition() != null
+                ? employee.getPosition().getPositionName()
+                : null);
 
         response.setHireDate(employee.getHireDate());
         response.setStatus(String.valueOf(employee.getStatus()));

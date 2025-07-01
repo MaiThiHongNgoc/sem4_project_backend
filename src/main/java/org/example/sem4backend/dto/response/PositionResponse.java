@@ -10,7 +10,7 @@ import java.util.UUID;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PositionResponse {
-    UUID positionId;
+    String positionId;
     String positionName;
     String status;
 

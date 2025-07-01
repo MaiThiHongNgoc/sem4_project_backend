@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface PositionRepository extends JpaRepository<Position, UUID> {
+public interface PositionRepository extends JpaRepository<Position, String> {
     @Query(value = "SELECT * FROM positions", nativeQuery = true)
     List<Position> findAllPositionNative();
 }

@@ -135,7 +135,7 @@ public class DepartmentService {
 
     private DepartmentResponse mapToDepartmentResponse(ResultSet rs) throws SQLException {
         return DepartmentResponse.builder()
-                .departmentId(UUID.fromString(rs.getString("department_id")))
+                .departmentId(rs.getString("department_id"))
                 .departmentName(rs.getString("department_name"))
                 .status(rs.getString("status"))
                 .build();

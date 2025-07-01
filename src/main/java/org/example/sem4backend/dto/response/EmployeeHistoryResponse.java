@@ -15,9 +15,9 @@ public class EmployeeHistoryResponse {
     String historyId;
     String employeeId;
     String employeeName;
-    UUID departmentId;
+    String departmentId;
     String departmentName;
-    UUID positionId;
+    String positionId;
     String positionName;
     String startDate;
     String endDate;
