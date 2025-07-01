@@ -5,6 +5,7 @@ import org.example.sem4backend.entity.QRInfo;
 import org.example.sem4backend.repository.QRInfoRepository;
 import org.example.sem4backend.service.QRInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,6 +47,15 @@ public class QRInfoController {
     @GetMapping("/search")
     public List<QRInfo> search(@RequestParam("q") String keyword) {
         return qrInfoService.search(keyword);
+    }
+
+    @GetMapping("/by-code")
+    public ResponseEntity<?> getByQrCode(@RequestParam("code") String qrCode) {
+        QRInfo qrInfo = qrInfoService.findByQrCode(qrCode);
+        if (qrInfo == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("QR code không tồn tại");
+        }
+        return ResponseEntity.ok(qrInfo);
     }
 
     // QRInfoController.java

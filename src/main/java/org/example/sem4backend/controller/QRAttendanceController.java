@@ -9,6 +9,7 @@ import org.example.sem4backend.repository.EmployeeRepository;
 import org.example.sem4backend.service.QRAttendanceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -76,7 +77,9 @@ public class QRAttendanceController {
         return ResponseEntity.ok(created);
     }
 
+
     // Cập nhật
+    @PreAuthorize("hasAnyRole('Admin', 'Hr')")
     @PutMapping("/{qrId}")
     public ResponseEntity<QRAttendance> update(@PathVariable String qrId,
                                                @RequestBody QRAttendance updateData) {
@@ -85,6 +88,7 @@ public class QRAttendanceController {
     }
 
     // Soft delete
+    @PreAuthorize("hasAnyRole('Admin', 'Hr')")
     @DeleteMapping("/{qrId}")
     public ResponseEntity<Void> softDelete(@PathVariable String qrId) {
         qrAttendanceService.softDelete(qrId);

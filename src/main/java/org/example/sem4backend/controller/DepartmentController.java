@@ -57,6 +57,17 @@ public class DepartmentController {
         }
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<DepartmentResponse>> getDepartmentById(@PathVariable UUID id) {
+        DepartmentResponse department = departmentService.getDepartmentById(id);
+        if (department != null) {
+            return new ResponseEntity<>(ApiResponse.success(ErrorCode.SUCCESS, department), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(ApiResponse.error(ErrorCode.NOT_FOUND, "Department not found"), HttpStatus.NOT_FOUND);
+        }
+    }
+
+
     @PreAuthorize("hasAnyRole('Admin', 'Hr')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<DepartmentResponse>> updateDepartment(
