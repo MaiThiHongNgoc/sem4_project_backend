@@ -17,8 +17,14 @@ public class Department {
 
     @Id
     @Column(name = "department_id", columnDefinition = "CHAR(36)")
-    UUID departmentId;
+    String departmentId;
 
+    @PrePersist
+    public void prePersist() {
+        if (this.departmentId == null) {
+            this.departmentId = UUID.randomUUID().toString();
+        }
+    }
     @Column(name = "department_name", unique = true, nullable = false)
     String departmentName;
 

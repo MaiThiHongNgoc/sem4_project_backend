@@ -20,7 +20,7 @@ public class EmployeeRequest {
     String phone;
     String address;
     String img;
-    UUID departmentId;
-    UUID positionId;
+    String departmentId;
+    String positionId;
     LocalDate hireDate;
 }

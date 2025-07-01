@@ -19,11 +19,13 @@ public class EmployeeResponse {
     String fullName;
     String gender;
     LocalDate dateOfBirth;
+    String positionName;
+    String departmentName;
     String phone;
     String address;
     String img;
-    UUID departmentId;
-    UUID positionId;
+    String departmentId;
+    String positionId;
     LocalDate hireDate;
     String status;
     LocalDateTime createdAt;

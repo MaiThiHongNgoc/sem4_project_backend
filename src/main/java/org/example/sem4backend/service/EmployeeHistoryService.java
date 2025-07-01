@@ -31,12 +31,12 @@ public class EmployeeHistoryService {
         Position position = null;
 
         if (request.getDepartmentId() != null) {
-            department = departmentRepository.findById(request.getDepartmentId())
+            departmentRepository.findById(request.getDepartmentId())
                     .orElseThrow(() -> new AppException(ErrorCode.DEPARTMENT_NOT_FOUND));
         }
 
         if (request.getPositionId() != null) {
-            position = positionRepository.findById(request.getPositionId())
+            position = positionRepository.findById(String.valueOf(request.getPositionId()))
                     .orElseThrow(() -> new AppException(ErrorCode.POSITION_NOT_FOUND));
         }
 
@@ -83,7 +83,7 @@ public class EmployeeHistoryService {
 
         Position position = null;
         if (request.getPositionId() != null) {
-            position = positionRepository.findById(request.getPositionId())
+            position = positionRepository.findById(String.valueOf(request.getPositionId()))
                     .orElseThrow(() -> new AppException(ErrorCode.POSITION_NOT_FOUND));
         }
 
@@ -130,14 +130,32 @@ public class EmployeeHistoryService {
                 .historyId(history.getHistoryId())
                 .employeeId(history.getEmployee().getEmployeeId())
                 .employeeName(history.getEmployee().getFullName())
-                .departmentId(history.getDepartment() != null ? history.getDepartment().getDepartmentId() : null)
-                .departmentName(history.getDepartment() != null ? history.getDepartment().getDepartmentName() : null)
-                .positionId(history.getPosition() != null ? history.getPosition().getPositionId() : null)
-                .positionName(history.getPosition() != null ? history.getPosition().getPositionName() : null)
+                .departmentId(
+                        history.getDepartment() != null
+                                ? history.getDepartment().getDepartmentId()
+                                : null
+                )
+                .departmentName(
+                        history.getDepartment() != null
+                                ? history.getDepartment().getDepartmentName()
+                                : null
+                )
+                .positionId(
+                        history.getPosition() != null
+                                ? history.getPosition().getPositionId()
+                                : null
+                )
+                .positionName(
+                        history.getPosition() != null
+                                ? history.getPosition().getPositionName()
+                                : null
+                )
                 .startDate(history.getStartDate())
                 .endDate(history.getEndDate())
                 .reason(history.getReason())
                 .status(history.getStatus())
                 .build();
     }
+
+
 }

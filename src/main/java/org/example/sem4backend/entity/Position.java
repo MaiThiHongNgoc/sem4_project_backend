@@ -16,7 +16,15 @@ public class Position {
 
     @Id
     @Column(name = "position_id", columnDefinition = "CHAR(36)")
-    UUID positionId;
+    String positionId;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.positionId == null) {
+            this.positionId = UUID.randomUUID().toString();
+        }
+    }
+
 
     @Column(name = "position_name", unique = true, nullable = false)
     String positionName;

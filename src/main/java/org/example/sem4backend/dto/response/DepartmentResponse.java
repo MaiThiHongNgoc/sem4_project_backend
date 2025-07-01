@@ -11,7 +11,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class DepartmentResponse {
-    UUID departmentId;
+    String departmentId;
     String departmentName;
     String status;
 }
