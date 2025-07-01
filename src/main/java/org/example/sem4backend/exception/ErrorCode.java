@@ -76,7 +76,10 @@ public enum ErrorCode {
     INVALID_LEAVE_TYPE(HttpStatus.BAD_REQUEST, "Invalid leave type"),
     DATABASE_ERROR(HttpStatus.BAD_REQUEST, "Database error occurred"),
     DUPLICATE_NAME(HttpStatus.BAD_REQUEST, "Duplicate name exists"),
-    NOT_FOUND(HttpStatus.BAD_REQUEST, "Resource not found");
+    NOT_FOUND(HttpStatus.BAD_REQUEST, "Resource not found"),
+    INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "Mật khẩu hiện tại không chính xác"),
+    PASSWORD_CONFIRM_MISMATCH(HttpStatus.BAD_REQUEST, "Mật khẩu xác nhận không khớp");
+
 
 // ... các mã khác
 
