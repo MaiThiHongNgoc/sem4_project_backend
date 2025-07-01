@@ -12,7 +12,9 @@ import java.util.Date;
 public class WorkScheduleResponse {
     String scheduleId;
     String employeeId;
+    String employeeName;
     String scheduleInfoId;
+    String scheduleInfoName;       
     Date workDay;
     Date startTime;
     Date endTime;
