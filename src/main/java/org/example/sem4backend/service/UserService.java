@@ -13,6 +13,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
+import org.example.sem4backend.dto.request.ChangePasswordRequest;
 
 import java.util.List;
 import java.util.Map;
@@ -185,4 +186,32 @@ public class UserService {
             throw new IllegalArgumentException("User not found: " + username);
         }
     }
+
+    public ApiResponse<Void> changePassword(String userId, ChangePasswordRequest request) {
+        try {
+            // Lấy mật khẩu hiện tại đã mã hóa
+            String query = "SELECT password FROM users WHERE user_id = ?";
+            String currentHashedPassword = jdbcTemplate.queryForObject(query, String.class, userId);
+
+            // So sánh mật khẩu hiện tại
+            if (!passwordEncoder.matches(request.getCurrentPassword(), currentHashedPassword)) {
+                return ApiResponse.error(ErrorCode.INVALID_PASSWORD, "Mật khẩu hiện tại không đúng");
+            }
+
+            // So sánh xác nhận mật khẩu mới
+            if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+                return ApiResponse.error(ErrorCode.PASSWORD_CONFIRM_MISMATCH, "Xác nhận mật khẩu không khớp");
+            }
+
+            // Mã hóa và cập nhật mật khẩu mới
+            String newHashedPassword = passwordEncoder.encode(request.getNewPassword());
+            jdbcTemplate.update("UPDATE users SET password = ? WHERE user_id = ?", newHashedPassword, userId);
+
+            return ApiResponse.success(ErrorCode.SUCCESS);
+        } catch (Exception e) {
+            logger.error("Error changing password for user {}: {}", userId, e.getMessage());
+            return ApiResponse.error(ErrorCode.OPERATION_FAILED, "Lỗi khi đổi mật khẩu");
+        }
+    }
+
 }
