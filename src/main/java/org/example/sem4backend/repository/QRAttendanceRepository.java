@@ -18,6 +18,10 @@ public interface QRAttendanceRepository extends JpaRepository<QRAttendance, Stri
     @Query("SELECT q FROM QRAttendance q WHERE q.attendanceDate BETWEEN :start AND :end AND q.activeStatus = 'Active'")
     List<QRAttendance> findAllByDateRange(Date start, Date end);
 
+    @Query("SELECT q FROM QRAttendance q JOIN FETCH q.employee")
+    List<QRAttendance> findAllWithEmployee();
+
+
 
 
 }
