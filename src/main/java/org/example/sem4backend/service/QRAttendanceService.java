@@ -170,4 +170,9 @@ public class QRAttendanceService {
         entity.setActiveStatus(QRAttendance.ActiveStatus.Inactive);
         qrAttendanceRepository.save(entity);
     }
+
+    public List<QRAttendance> getAllWithEmployees() {
+        return qrAttendanceRepository.findAllWithEmployee();
+    }
+
 }
