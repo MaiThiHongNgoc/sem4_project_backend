@@ -20,4 +20,7 @@ public interface UserFCMTokenRepository extends JpaRepository<UserFCMToken, Stri
 
     @Query("SELECT t FROM UserFCMToken t WHERE t.user = :user AND t.fcmToken = :fcmToken")
     UserFCMToken findByUserAndFcmToken(@Param("user") User user, @Param("fcmToken") String fcmToken);
+
+    @Query("SELECT t.fcmToken FROM UserFCMToken t WHERE t.user.userId = :userId")
+    List<String> findFcmTokensByUserId(@Param("userId") String userId);
 }

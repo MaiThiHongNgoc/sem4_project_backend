@@ -20,17 +20,16 @@ import java.util.Map;
 public class NotificationController {
 
     @Autowired
-    private NotificationService notificationService;
-
-    @Autowired
     private FirebasePushService firebasePushService;
 
     @Autowired
     private UserFCMTokenRepository tokenRepo;
 
-    // ✅ Gửi push + lưu Firestore theo nhiều role
-    @PreAuthorize("hasAnyRole('Admin', 'Hr')")
+    @Autowired
+    private NotificationService notificationService;
+
     @PostMapping("/push-to-roles")
+    @PreAuthorize("hasAnyRole('Admin', 'Hr')")
     public ResponseEntity<String> pushToRoles(@RequestBody Map<String, Object> payload) {
         String title = (String) payload.get("title");
         String message = (String) payload.get("message");
@@ -38,41 +37,38 @@ public class NotificationController {
         List<String> roles = (List<String>) payload.get("roles");
 
         List<String> tokens = tokenRepo.findFcmTokensByRoles(roles);
-        for (String token : tokens) {
-            try {
-                firebasePushService.sendPushNotification(token, title, message);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        Map<String, Integer> result = firebasePushService.sendPushToMultipleTokens(tokens, title, message);
 
         notificationService.saveNotification(title, message, senderId, roles, List.of());
-        return ResponseEntity.ok("✅ Sent to roles: " + String.join(", ", roles));
+
+        return ResponseEntity.ok("✅ Sent to roles: " + String.join(", ", roles) +
+                " | Success: " + result.get("success") +
+                " | Failed: " + result.get("failure"));
     }
 
-    // ✅ Gửi push đến 1 user cụ thể
+    @PostMapping("/push-to-user")
     @PreAuthorize("hasAnyRole('Admin', 'Hr')")
-    @PostMapping("/push")
-    public ResponseEntity<String> pushToUser(@RequestBody Map<String, String> payload) throws IOException {
-        firebasePushService.sendPushNotification(
-                payload.get("fcmToken"),
-                payload.get("title"),
-                payload.get("message")
-        );
-        return ResponseEntity.ok("✅ Sent to 1 user");
+    public ResponseEntity<String> pushToUser(@RequestBody Map<String, String> payload) {
+        String userId = payload.get("userId");
+        String title = payload.get("title");
+        String message = payload.get("message");
+
+        List<String> tokens = tokenRepo.findFcmTokensByUserId(userId);
+        Map<String, Integer> result = firebasePushService.sendPushToMultipleTokens(tokens, title, message);
+
+        return ResponseEntity.ok("✅ Sent to user: " + userId +
+                " | Success: " + result.get("success") +
+                " | Failed: " + result.get("failure"));
     }
 
-    // ✅ Lưu Firestore thông báo không gửi push
+    @PostMapping("/push-to-topic")
     @PreAuthorize("hasAnyRole('Admin', 'Hr')")
-    @PostMapping("/save")
-    public ResponseEntity<String> saveOnly(@RequestBody Map<String, Object> payload) {
-        String title = (String) payload.get("title");
-        String message = (String) payload.get("message");
-        String senderId = (String) payload.get("sentBy");
-        List<String> roles = (List<String>) payload.get("roles");
-        List<String> userIds = (List<String>) payload.get("userIds");
+    public ResponseEntity<String> pushToTopic(@RequestBody Map<String, String> payload) throws IOException {
+        String topic = payload.get("topic");
+        String title = payload.get("title");
+        String message = payload.get("message");
 
-        notificationService.saveNotification(title, message, senderId, roles, userIds);
-        return ResponseEntity.ok("✅ Saved only");
+        boolean sent = firebasePushService.sendPushToTopic(topic, title, message);
+        return ResponseEntity.ok("✅ Topic " + topic + " | Status: " + (sent ? "Success" : "Failed"));
     }
 }
