@@ -5,6 +5,7 @@ import org.example.sem4backend.entity.Attendance;
 import org.example.sem4backend.repository.AttendanceRepository;
 import org.example.sem4backend.service.AttendanceCalculationService;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
@@ -21,6 +22,12 @@ public class AttendanceController {
     @GetMapping
     public List<Attendance> getAllActiveAttendances() {
         return attendanceRepository.findByActiveStatus(Attendance.ActiveStatus.Active);
+    }
+
+    @PreAuthorize("hasAnyRole('Admin', 'Hr', 'User')")
+    @GetMapping("/with-employee")
+    public List<Attendance> getAttendancesWithEmployee() {
+        return attendanceRepository.findActiveWithEmployee(Attendance.ActiveStatus.Active);
     }
 
     @PostMapping
