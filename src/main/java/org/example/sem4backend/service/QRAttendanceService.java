@@ -29,6 +29,10 @@ public class QRAttendanceService {
     @Autowired
     private QRInfoRepository qrInfoRepository;
 
+    @Autowired
+    private AttendanceCalculationService attendanceCalculationService;
+
+
     // Lấy danh sách QR Attendance đang active
     public List<QRAttendance> getAllActive() {
         return qrAttendanceRepository.findByActiveStatus(QRAttendance.ActiveStatus.Active);
@@ -51,7 +55,6 @@ public class QRAttendanceService {
                 .orElseThrow(() -> new RuntimeException("Employee not found with ID: " + empId));
         qrAttendance.setEmployee(employee);
 
-        // Thiết lập QR Info nếu có
         if (qrAttendance.getQrInfo() != null && qrAttendance.getQrInfo().getQrInfoId() != null) {
             QRInfo qrInfo = qrInfoRepository.findById(qrAttendance.getQrInfo().getQrInfoId()).orElse(null);
             qrAttendance.setQrInfo(qrInfo);
@@ -59,7 +62,6 @@ public class QRAttendanceService {
             qrAttendance.setQrInfo(null);
         }
 
-        // Kiểm tra phương thức chấm công
         boolean hasQR = qrAttendance.getQrInfo() != null;
         boolean hasFace = qrAttendance.getFaceRecognitionImage() != null && !qrAttendance.getFaceRecognitionImage().isEmpty();
         boolean hasGPS = qrAttendance.getLatitude() != null && qrAttendance.getLongitude() != null;
@@ -76,19 +78,8 @@ public class QRAttendanceService {
             throw new RuntimeException("Must provide either QR info or Face image with GPS.");
         }
 
-
-        // Xác định phương thức chấm công
-        if (hasQR) {
-            qrAttendance.setAttendanceMethod(QRAttendance.AttendanceMethod.QR);
-        } else if (hasFace && hasGPS) {
-            qrAttendance.setAttendanceMethod(QRAttendance.AttendanceMethod.FaceGPS);
-        } else {
-            qrAttendance.setAttendanceMethod(QRAttendance.AttendanceMethod.Unknown);
-        }
-
         qrAttendance.setActiveStatus(QRAttendance.ActiveStatus.Active);
 
-        // === Xác định Checkin hay Checkout ===
         LocalDate today = LocalDate.now();
         List<QRAttendance> todayRecords = qrAttendanceRepository.findByEmployeeAndAttendanceDate(
                 employee,
@@ -106,7 +97,12 @@ public class QRAttendanceService {
             throw new RuntimeException("Check-in and Check-out already recorded for today");
         }
 
-        return qrAttendanceRepository.save(qrAttendance);
+        QRAttendance saved = qrAttendanceRepository.save(qrAttendance);
+
+        // ✅ Gọi hàm tổng hợp ngay sau khi lưu
+        attendanceCalculationService.generateDailyAttendanceSummary(saved.getAttendanceDate());
+
+        return saved;
     }
 
 

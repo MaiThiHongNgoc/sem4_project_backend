@@ -12,6 +12,9 @@ import java.util.Map;
 public class ScheduledNotificationService {
 
     @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
     private FirebasePushService firebasePushService;
 
     @Autowired
@@ -22,8 +25,10 @@ public class ScheduledNotificationService {
         String title = "Chào buổi sáng!";
         String message = "Chúc bạn một ngày tốt lành.";
 
-        List<String> tokens = tokenRepo.findFcmTokensByRoles(List.of("Employee"));
+        List<String> tokens = tokenRepo.findFcmTokensByRoles(List.of("User"));
         Map<String, Integer> result = firebasePushService.sendPushToMultipleTokens(tokens, title, message);
+        notificationService.saveNotification(title, message, "system", List.of("User"), List.of());
+
 
         System.out.println("[Scheduler] Sent reminder | Success: " + result.get("success") + ", Failed: " + result.get("failure"));
     }
