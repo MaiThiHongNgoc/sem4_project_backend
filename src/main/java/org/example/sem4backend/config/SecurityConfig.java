@@ -40,6 +40,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/auth/login",
+                                "/api/fcm/register",
                                 "/api/password-reset/send-otp",
                                 "/api/password-reset/verify-otp/**",
                                 "/api/password-reset/reset-password/**",
