@@ -1,8 +1,10 @@
 package org.example.sem4backend.service;
 
+import org.example.sem4backend.dto.request.EmployeeHistoryRequest;
 import org.example.sem4backend.dto.request.EmployeeRequest;
 import org.example.sem4backend.dto.response.EmployeeResponse;
 import org.example.sem4backend.entity.Employee;
+import org.example.sem4backend.entity.EmployeeHistory;
 import org.example.sem4backend.repository.EmployeeRepository;
 import org.example.sem4backend.repository.UserRepository;
 import org.slf4j.Logger;
@@ -31,6 +33,10 @@ public class EmployeeService {
 
     @Autowired
     private EmployeeRepository employeeRepository;
+
+    @Autowired
+    private EmployeeHistoryService employeeHistoryService;
+
 
     public String getEmployeeIdByUserId(String userId) {
         return userRepository.findById(userId)
@@ -89,10 +95,25 @@ public class EmployeeService {
                     hireDate
             );
 
+            // Get the employee after insertion
             EmployeeResponse response = getEmployeeById(employeeId);
             if (response == null) {
                 throw new IllegalStateException("Failed to retrieve newly added employee");
             }
+
+            // Ghi lịch sử nếu có phòng ban hoặc chức vụ
+            if (request.getDepartmentId() != null || request.getPositionId() != null) {
+                EmployeeHistoryRequest historyRequest = EmployeeHistoryRequest.builder()
+                        .employeeId(employeeId.toString())
+                        .departmentId(request.getDepartmentId())
+                        .positionId(request.getPositionId())
+                        .startDate(String.valueOf(request.getHireDate()))
+                        .status(EmployeeHistory.Status.valueOf("Active"))
+                        .reason("Hired")
+                        .build();
+                employeeHistoryService.create(historyRequest);
+            }
+
             return response;
         } catch (Exception e) {
             logger.error("Error adding employee: ", e);
@@ -100,9 +121,22 @@ public class EmployeeService {
         }
     }
 
+
     public EmployeeResponse updateEmployee(UUID employeeId, EmployeeRequest request) {
         try {
             Date dob = request.getDateOfBirth() != null ? Date.valueOf(request.getDateOfBirth()) : null;
+
+            // Lấy nhân viên hiện tại từ DB
+            EmployeeResponse current = getEmployeeById(employeeId);
+            if (current == null) {
+                throw new IllegalStateException("Employee not found");
+            }
+
+            // Kiểm tra có thay đổi phòng ban hoặc chức vụ không
+            boolean isDepartmentChanged = request.getDepartmentId() != null
+                    && !request.getDepartmentId().equals(current.getDepartmentId());
+            boolean isPositionChanged = request.getPositionId() != null
+                    && !request.getPositionId().equals(current.getPositionId());
 
             jdbcTemplate.update(
                     "CALL sp_update_employee(?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -117,16 +151,31 @@ public class EmployeeService {
                     request.getPositionId() != null ? request.getPositionId().toString() : null
             );
 
-            EmployeeResponse response = getEmployeeById(employeeId);
-            if (response == null) {
+            EmployeeResponse updated = getEmployeeById(employeeId);
+            if (updated == null) {
                 throw new IllegalStateException("Failed to retrieve updated employee");
             }
-            return response;
+
+            // Nếu có thay đổi, thêm lịch sử
+            if (isDepartmentChanged || isPositionChanged) {
+                EmployeeHistoryRequest historyRequest = EmployeeHistoryRequest.builder()
+                        .employeeId(employeeId.toString())
+                        .departmentId(request.getDepartmentId())
+                        .positionId(request.getPositionId())
+                        .startDate(String.valueOf(updated.getHireDate() != null ? updated.getHireDate() : java.time.LocalDate.now()))
+                        .status(EmployeeHistory.Status.valueOf(updated.getStatus()))
+                        .reason("Updated department or position")
+                        .build();
+                employeeHistoryService.create(historyRequest);
+            }
+
+            return updated;
         } catch (Exception e) {
             logger.error("Error updating employee: ", e);
             throw new IllegalStateException("Lỗi cập nhật employee: " + e.getMessage());
         }
     }
+
 
     public void deleteEmployee(UUID employeeId) {
         try {
