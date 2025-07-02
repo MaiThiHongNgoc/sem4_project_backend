@@ -94,4 +94,11 @@ public class QRAttendanceController {
         qrAttendanceService.softDelete(qrId);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/with-employees")
+    public ResponseEntity<List<QRAttendance>> getAllWithEmployees() {
+        List<QRAttendance> list = qrAttendanceService.getAllWithEmployees();
+        return ResponseEntity.ok(list);
+    }
+
 }
