@@ -16,11 +16,18 @@ import java.util.List;
 public class WorkScheduleController {
     private final WorkScheduleService service;
 
-    @PreAuthorize("hasAnyRole('Admin','Hr')")
+    @PreAuthorize("hasAnyRole('Admin','Hr','User')")
     @PostMapping
     public ApiResponse<WorkScheduleResponse> create(@RequestBody WorkScheduleRequest request) {
         return service.create(request);
     }
+
+    @PreAuthorize("hasAnyRole('Admin','Hr','User')")
+    @PostMapping("/bulk")
+    public ApiResponse<List<WorkScheduleResponse>> createBulk(@RequestBody List<WorkScheduleRequest> requests) {
+        return service.createBulk(requests);
+    }
+
 
     @PreAuthorize("hasAnyRole('Admin','Hr','User')")
     @GetMapping

@@ -82,4 +82,10 @@ public class RoleController {
         ApiResponse<Void> response = roleService.deleteRole(roleId);
         return new ResponseEntity<>(response, response.isSuccess() ? HttpStatus.OK : HttpStatus.BAD_REQUEST);
     }
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<RoleResponse>> getRoleById(@PathVariable("id") UUID roleId) {
+        ApiResponse<RoleResponse> response = roleService.getRoleById(roleId);
+        return ResponseEntity.status(response.getCode()).body(response);
+    }
+
 }

@@ -17,6 +17,10 @@ public class AttendanceCalculationService {
     private final QRAttendanceRepository qrAttendanceRepository;
     private final AttendanceRepository attendanceRepository;
 
+    public List<Attendance> getAttendancesWithEmployee() {
+        return attendanceRepository.findActiveWithEmployee(Attendance.ActiveStatus.Active);
+    }
+
     public void generateDailyAttendanceSummary(Date date) {
         List<QRAttendance> qrList = qrAttendanceRepository.findAllByDateRange(date, date);
 

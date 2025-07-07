@@ -95,7 +95,7 @@ public class QRAttendanceController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/with-employees")
+    @GetMapping("/with-employees/{employeeId}")
     public ResponseEntity<List<QRAttendance>> getAllWithEmployees() {
         List<QRAttendance> list = qrAttendanceService.getAllWithEmployees();
         return ResponseEntity.ok(list);

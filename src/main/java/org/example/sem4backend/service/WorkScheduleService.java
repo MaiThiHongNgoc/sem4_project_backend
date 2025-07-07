@@ -15,6 +15,7 @@ import org.example.sem4backend.repository.WorkScheduleRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -47,6 +48,44 @@ public class WorkScheduleService {
 
         return ApiResponse.success(ErrorCode.OPERATION_SUCCESSFUL, mapToResponse(schedule));
     }
+
+    public ApiResponse<List<WorkScheduleResponse>> createBulk(List<WorkScheduleRequest> requests) {
+        List<WorkScheduleResponse> responses = requests.stream().map(request -> {
+            Employee employee = employeeRepo.findById(request.getEmployeeId())
+                    .orElseThrow(() -> new AppException(ErrorCode.EMPLOYEE_NOT_FOUND));
+
+            WorkScheduleInfo info = null;
+            if (request.getScheduleInfoId() != null) {
+                info = scheduleInfoRepo.findById(request.getScheduleInfoId())
+                        .orElseThrow(() -> new AppException(ErrorCode.WORK_SCHEDULE_INFO_NOT_FOUND));
+            }
+
+            // Kiểm tra xem ca này đã đăng ký chưa (tránh đăng lại)
+            Optional<WorkSchedule> existing = repository.findDuplicateSchedule(
+                    employee.getEmployeeId(),
+                    info != null ? info.getScheduleInfoId() : null,
+                    request.getWorkDay()
+            );
+            if (existing.isPresent()) {
+                // Có thể throw lỗi nếu muốn chặn toàn bộ
+                return null; // bỏ qua ca này
+            }
+
+            WorkSchedule schedule = WorkSchedule.builder()
+                    .employee(employee)
+                    .scheduleInfo(info)
+                    .workDay(request.getWorkDay())
+                    .startTime(request.getStartTime())
+                    .endTime(request.getEndTime())
+                    .status(WorkSchedule.Status.valueOf(request.getStatus()))
+                    .build();
+
+            return mapToResponse(repository.save(schedule));
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+
+        return ApiResponse.success(ErrorCode.OPERATION_SUCCESSFUL, responses);
+    }
+
 
     public ApiResponse<List<WorkScheduleResponse>> getAll() {
         return ApiResponse.success(repository.findAll().stream()
