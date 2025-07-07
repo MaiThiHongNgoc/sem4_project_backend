@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.Date;
 import java.util.UUID;
 
 @Entity
@@ -40,11 +41,11 @@ public class WorkSchedule {
 
     @Column(name = "start_time", nullable = false)
     @Temporal(TemporalType.TIME)
-    java.util.Date startTime;
+    Date startTime;
 
     @Column(name = "end_time", nullable = false)
     @Temporal(TemporalType.TIME)
-    java.util.Date endTime;
+    Date endTime;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)

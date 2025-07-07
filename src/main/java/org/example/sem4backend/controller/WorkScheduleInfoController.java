@@ -23,7 +23,7 @@ public class WorkScheduleInfoController {
     private final WorkScheduleInfoService workScheduleInfoService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('Hr', 'Admin')")
     public ApiResponse<WorkScheduleInfoResponse> createWorkScheduleInfo(@Valid @RequestBody WorkScheduleInfoRequest request) {
         log.info("Received request to create work schedule info: {}", request.getName());
         WorkScheduleInfoResponse response = workScheduleInfoService.createWorkScheduleInfo(request);
@@ -31,7 +31,7 @@ public class WorkScheduleInfoController {
     }
 
     @GetMapping("/{scheduleInfoId}")
-    @PreAuthorize("hasAnyRole('USER', 'HR', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('User', 'Hr', 'Admin')")
     public ApiResponse<WorkScheduleInfoResponse> getWorkScheduleInfo(@PathVariable String scheduleInfoId) {
         log.info("Received request to get work schedule info with ID: {}", scheduleInfoId);
         WorkScheduleInfoResponse response = workScheduleInfoService.getWorkScheduleInfoById(scheduleInfoId);
@@ -39,7 +39,7 @@ public class WorkScheduleInfoController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('USER', 'HR', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('User', 'Hr', 'Admin')")
     public ApiResponse<List<WorkScheduleInfoResponse>> getAllWorkScheduleInfos() {
         log.info("Received request to get all work schedule infos");
         List<WorkScheduleInfoResponse> responses = workScheduleInfoService.getAllWorkScheduleInfos();
@@ -47,7 +47,7 @@ public class WorkScheduleInfoController {
     }
 
     @PutMapping("/{scheduleInfoId}")
-    @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('Hr', 'Admin')")
     public ApiResponse<WorkScheduleInfoResponse> updateWorkScheduleInfo(
             @PathVariable String scheduleInfoId,
             @Valid @RequestBody WorkScheduleInfoRequest request) {
@@ -57,7 +57,7 @@ public class WorkScheduleInfoController {
     }
 
     @DeleteMapping("/{scheduleInfoId}")
-    @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('Hr', 'Admin')")
     public ApiResponse<Void> deleteWorkScheduleInfo(@PathVariable String scheduleInfoId) {
         log.info("Received request to delete work schedule info with ID: {}", scheduleInfoId);
         workScheduleInfoService.deleteWorkScheduleInfo(scheduleInfoId);

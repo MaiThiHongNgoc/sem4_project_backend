@@ -88,4 +88,30 @@ public class RoleService {
             return ApiResponse.error(ErrorCode.OPERATION_FAILED, "Lỗi xóa role: " + e.getMessage());
         }
     }
+    public ApiResponse<RoleResponse> getRoleById(UUID roleId) {
+        try {
+            List<RoleResponse> roles = jdbcTemplate.query(
+                    "SELECT role_id, role_name, description, status FROM roles WHERE role_id = ?",
+                    new Object[]{roleId.toString()},
+                    (rs, rowNum) -> new RoleResponse(
+                            rs.getString("role_id"),
+                            rs.getString("role_name"),
+                            rs.getString("description"),
+                            rs.getString("status")
+                    )
+            );
+
+            if (roles.isEmpty()) {
+                return ApiResponse.error(ErrorCode.NOT_FOUND, "Không tìm thấy vai trò với ID đã cho");
+            }
+
+            return ApiResponse.success(ErrorCode.SUCCESS, roles.get(0));
+        } catch (Exception e) {
+            logger.error("Lỗi khi lấy role theo ID: ", e);
+            return ApiResponse.error(ErrorCode.OPERATION_FAILED, "Lỗi lấy role theo ID: " + e.getMessage());
+        }
+    }
+
+
+
 }
