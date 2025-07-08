@@ -34,17 +34,24 @@ public class AttendanceAppealService {
     public AttendanceAppeal createAppeal(String employeeId, String attendanceId, String reason, String evidence) {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new RuntimeException("Employee not found"));
-        Attendance attendance = attendanceRepository.findById(attendanceId)
-                .orElseThrow(() -> new RuntimeException("Attendance not found"));
 
         AttendanceAppeal appeal = new AttendanceAppeal();
         appeal.setEmployee(employee);
-        appeal.setAttendance(attendance);
         appeal.setReason(reason);
         appeal.setEvidence(evidence);
         appeal.setStatus(AttendanceAppeal.Status.Pending);
+
+        if (attendanceId != null && !attendanceId.isEmpty()) {
+            Attendance attendance = attendanceRepository.findById(attendanceId)
+                    .orElseThrow(() -> new RuntimeException("Attendance not found"));
+            appeal.setAttendance(attendance);
+        } else {
+            appeal.setAttendance(null); // rõ ràng gán null để an toàn
+        }
+
         return appealRepository.save(appeal);
     }
+
 
     public List<AttendanceAppeal> getAppealsByEmployee(String employeeId) {
         return appealRepository.findByEmployee_EmployeeId(employeeId);

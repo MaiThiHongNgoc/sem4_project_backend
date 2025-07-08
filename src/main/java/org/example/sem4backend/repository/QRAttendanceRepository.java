@@ -21,7 +21,10 @@ public interface QRAttendanceRepository extends JpaRepository<QRAttendance, Stri
     @Query("SELECT q FROM QRAttendance q JOIN FETCH q.employee")
     List<QRAttendance> findAllWithEmployee();
 
-
+    @Query("SELECT q FROM QRAttendance q " +
+            "JOIN FETCH q.employee e " +
+            "WHERE e.employeeId = :employeeId")
+    List<QRAttendance> findByEmployeeIdWithEmployee(String employeeId);
 
 
 }

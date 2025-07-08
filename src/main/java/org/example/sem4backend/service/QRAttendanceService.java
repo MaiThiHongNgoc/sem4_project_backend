@@ -199,5 +199,10 @@ public class QRAttendanceService {
     public List<QRAttendance> getAllWithEmployees() {
         return qrAttendanceRepository.findAllWithEmployee();
     }
+    public List<QRAttendance> getAttendanceByEmployeeId(String employeeId) {
+        return qrAttendanceRepository.findByEmployeeIdWithEmployee(employeeId);
+    }
+
+
 
 }

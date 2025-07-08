@@ -101,4 +101,10 @@ public class QRAttendanceController {
         return ResponseEntity.ok(list);
     }
 
+    @GetMapping("/by-employee")
+    public ResponseEntity<List<QRAttendance>> getAttendancesByEmployeeId(@RequestParam String employeeId) {
+        List<QRAttendance> attendances = qrAttendanceService.getAttendanceByEmployeeId(employeeId);
+        return ResponseEntity.ok(attendances);
+    }
+
 }

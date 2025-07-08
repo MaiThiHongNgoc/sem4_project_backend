@@ -25,7 +25,7 @@ public class AttendanceAppeal {
     Employee employee;
 
     @ManyToOne
-    @JoinColumn(name = "attendance_id", nullable = false)
+    @JoinColumn(name = "attendance_id")
     Attendance attendance;
 
     @Column(name = "appeal_date", nullable = false, updatable = false)
