@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.UUID;
 
@@ -36,8 +37,7 @@ public class WorkSchedule {
     WorkScheduleInfo scheduleInfo;
 
     @Column(name = "work_day", nullable = false)
-    @Temporal(TemporalType.DATE)
-    java.util.Date workDay;
+    LocalDate workDay;
 
     @Column(name = "start_time", nullable = false)
     @Temporal(TemporalType.TIME)

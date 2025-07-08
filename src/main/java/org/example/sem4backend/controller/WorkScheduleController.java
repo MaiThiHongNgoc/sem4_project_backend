@@ -3,11 +3,16 @@ package org.example.sem4backend.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.sem4backend.dto.request.WorkScheduleRequest;
 import org.example.sem4backend.dto.response.ApiResponse;
+import org.example.sem4backend.dto.response.WorkScheduleFullResponse;
 import org.example.sem4backend.dto.response.WorkScheduleResponse;
 import org.example.sem4backend.service.WorkScheduleService;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -41,7 +46,7 @@ public class WorkScheduleController {
         return service.getById(id);
     }
 
-    @PreAuthorize("hasAnyRole('Admin','Hr')")
+    @PreAuthorize("hasAnyRole('Admin','Hr','User')")
     @PutMapping("/{id}")
     public ApiResponse<WorkScheduleResponse> update(@PathVariable String id, @RequestBody WorkScheduleRequest request) {
         return service.update(id, request);
@@ -52,4 +57,33 @@ public class WorkScheduleController {
     public ApiResponse<Void> delete(@PathVariable String id) {
         return service.delete(id);
     }
+
+    @PreAuthorize("hasAnyRole('Admin','Hr','User')")
+    @GetMapping("/full")
+    public ResponseEntity<ApiResponse<List<WorkScheduleFullResponse>>> getAllSchedulesWithDetails() {
+        return ResponseEntity.ok(service.getAllWithDetails());
+    }
+
+    @PreAuthorize("hasAnyRole('Admin','Hr','User')")
+    @GetMapping("/filter")
+    public ResponseEntity<ApiResponse<List<WorkScheduleFullResponse>>> getFilteredSchedules(
+            @RequestParam(name = "empId", required = false) String employeeId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate workDay
+    ) {
+        return ResponseEntity.ok(service.getFilteredSchedules(employeeId, workDay));
+    }
+
+
+    @PreAuthorize("hasAnyRole('Admin','Hr','User')")
+    @GetMapping("/filter-range")
+    public ResponseEntity<ApiResponse<List<WorkScheduleFullResponse>>> getSchedulesByEmployeeAndDateRange(
+            @RequestParam(required = false) String employeeId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate
+    ) {
+        return ResponseEntity.ok(service.getSchedulesByEmployeeAndDateRange(employeeId, fromDate, toDate));
+    }
+
+
+
 }

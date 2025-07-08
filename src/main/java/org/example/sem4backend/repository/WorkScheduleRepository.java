@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 public interface WorkScheduleRepository extends JpaRepository<WorkSchedule, String> {
@@ -16,7 +18,24 @@ public interface WorkScheduleRepository extends JpaRepository<WorkSchedule, Stri
     Optional<WorkSchedule> findDuplicateSchedule(
             @Param("empId") String empId,
             @Param("infoId") String infoId,
-            @Param("workDay") java.util.Date workDay
+            @Param("workDay") LocalDate workDay
     );
+
+
+    @Query("SELECT ws FROM WorkSchedule ws JOIN FETCH ws.scheduleInfo WHERE ws.employee.employeeId = :empId AND ws.workDay = :date")
+    List<WorkSchedule> findByEmployeeIdAndWorkDay(@Param("empId") String empId, @Param("date") LocalDate date);
+
+
+    @Query("SELECT w FROM WorkSchedule w " +
+            "WHERE (:empId IS NULL OR w.employee.employeeId = :empId) " +
+            "AND (:fromDate IS NULL OR w.workDay >= :fromDate) " +
+            "AND (:toDate IS NULL OR w.workDay <= :toDate)")
+    List<WorkSchedule> findByEmployeeAndDateRange(
+            @Param("empId") String empId,
+            @Param("fromDate") LocalDate fromDate,
+            @Param("toDate") LocalDate toDate
+    );
+
+
 
 }

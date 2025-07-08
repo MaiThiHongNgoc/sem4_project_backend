@@ -3,6 +3,7 @@ package org.example.sem4backend.service;
 import lombok.RequiredArgsConstructor;
 import org.example.sem4backend.dto.request.WorkScheduleRequest;
 import org.example.sem4backend.dto.response.ApiResponse;
+import org.example.sem4backend.dto.response.WorkScheduleFullResponse;
 import org.example.sem4backend.dto.response.WorkScheduleResponse;
 import org.example.sem4backend.entity.Employee;
 import org.example.sem4backend.entity.WorkSchedule;
@@ -14,6 +15,8 @@ import org.example.sem4backend.repository.WorkScheduleInfoRepository;
 import org.example.sem4backend.repository.WorkScheduleRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -142,5 +145,87 @@ public class WorkScheduleService {
                 .status(schedule.getStatus().name())
                 .build();
     }
+
+
+    public ApiResponse<List<WorkScheduleFullResponse>> getAllWithDetails() {
+        List<WorkSchedule> schedules = repository.findAll();
+
+        List<WorkScheduleFullResponse> responses = schedules.stream().map(ws -> {
+            return WorkScheduleFullResponse.builder()
+                    .scheduleId(ws.getScheduleId())
+
+                    .employeeId(ws.getEmployee().getEmployeeId())
+                    .employeeName(ws.getEmployee().getFullName())
+
+                    .scheduleInfoId(ws.getScheduleInfo() != null ? ws.getScheduleInfo().getScheduleInfoId() : null)
+                    .scheduleInfoName(ws.getScheduleInfo() != null ? ws.getScheduleInfo().getName() : null)
+                    .scheduleStartTime(ws.getScheduleInfo() != null ? ws.getScheduleInfo().getDefaultStartTime() : null)
+                    .scheduleEndTime(ws.getScheduleInfo() != null ? ws.getScheduleInfo().getDefaultEndTime() : null)
+
+                    .workDay(ws.getWorkDay())
+                    .startTime(ws.getStartTime())
+                    .endTime(ws.getEndTime())
+                    .status(ws.getStatus().name())
+                    .build();
+        }).collect(Collectors.toList());
+
+        return ApiResponse.success(responses);
+    }
+
+    public ApiResponse<List<WorkScheduleFullResponse>> getFilteredSchedules(String empId, LocalDate workDay) {
+        System.out.println("🧪 Lọc lịch làm với employeeId = " + empId + ", workDay = " + workDay);
+        List<WorkSchedule> schedules = repository.findByEmployeeIdAndWorkDay(empId, workDay);
+
+        System.out.println("📊 Số lịch tìm được: " + schedules.size());
+
+        List<WorkScheduleFullResponse> responses = schedules.stream().map(ws -> WorkScheduleFullResponse.builder()
+                .scheduleId(ws.getScheduleId())
+                .employeeId(ws.getEmployee().getEmployeeId())
+                .employeeName(ws.getEmployee().getFullName())
+                .scheduleInfoId(ws.getScheduleInfo() != null ? ws.getScheduleInfo().getScheduleInfoId() : null)
+                .scheduleInfoName(ws.getScheduleInfo() != null ? ws.getScheduleInfo().getName() : null)
+                .scheduleStartTime(ws.getScheduleInfo() != null ? ws.getScheduleInfo().getDefaultStartTime() : null)
+                .scheduleEndTime(ws.getScheduleInfo() != null ? ws.getScheduleInfo().getDefaultEndTime() : null)
+                .workDay(ws.getWorkDay())
+                .startTime(ws.getStartTime())
+                .endTime(ws.getEndTime())
+                .defaultStartTime(ws.getScheduleInfo().getDefaultStartTime()) // ✅
+                .defaultEndTime(ws.getScheduleInfo().getDefaultEndTime())
+                .status(ws.getStatus().name())
+                .build()
+        ).collect(Collectors.toList());
+
+        return ApiResponse.success(responses);
+    }
+
+
+
+    public ApiResponse<List<WorkScheduleFullResponse>> getSchedulesByEmployeeAndDateRange(
+            String employeeId,LocalDate fromDate, LocalDate toDate
+    ) {
+        List<WorkSchedule> schedules = repository.findByEmployeeAndDateRange(employeeId, fromDate, toDate);
+
+        List<WorkScheduleFullResponse> responses = schedules.stream().map(ws -> WorkScheduleFullResponse.builder()
+                .scheduleId(ws.getScheduleId())
+                .employeeId(ws.getEmployee().getEmployeeId())
+                .employeeName(ws.getEmployee().getFullName())
+                .scheduleInfoId(ws.getScheduleInfo() != null ? ws.getScheduleInfo().getScheduleInfoId() : null)
+                .scheduleInfoName(ws.getScheduleInfo() != null ? ws.getScheduleInfo().getName() : null)
+                .scheduleStartTime(ws.getScheduleInfo() != null ? ws.getScheduleInfo().getDefaultStartTime() : null)
+                .scheduleEndTime(ws.getScheduleInfo() != null ? ws.getScheduleInfo().getDefaultEndTime() : null)
+                .workDay(ws.getWorkDay())
+                .startTime(ws.getStartTime())
+                .endTime(ws.getEndTime())
+                .defaultStartTime(ws.getScheduleInfo().getDefaultStartTime()) // ✅
+                .defaultEndTime(ws.getScheduleInfo().getDefaultEndTime())
+                .status(ws.getStatus().name())
+                .build()
+        ).collect(Collectors.toList());
+
+        return ApiResponse.success(responses);
+    }
+
+
+
 
 }
