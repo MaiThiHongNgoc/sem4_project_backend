@@ -35,7 +35,7 @@ public class AttendanceAppeal {
     @Column(name = "reason", columnDefinition = "TEXT", nullable = false)
     String reason;
 
-    @Column(name = "evidence", columnDefinition = "TEXT")
+    @Column(name = "evidence",columnDefinition = "LONGTEXT")
     String evidence;
 
     @Enumerated(EnumType.STRING)

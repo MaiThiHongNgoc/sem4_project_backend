@@ -8,6 +8,7 @@ import org.example.sem4backend.repository.QRAttendanceRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 
 @Service
@@ -71,5 +72,15 @@ public class AttendanceCalculationService {
 
             attendanceRepository.save(attendance);
         }
+    }
+    public List<Attendance> getByEmployeeId(String employeeId) {
+        return attendanceRepository.findByEmployeeIdWithEmployee(employeeId);
+    }
+
+    public List<Attendance> getByEmployeeAndDateRange(String employeeId, LocalDate fromDate, LocalDate toDate, String status) {
+        if (status != null && !status.isEmpty()) {
+            return attendanceRepository.findByEmployeeIdAndDateRangeAndStatus(employeeId, fromDate, toDate, status);
+        }
+        return attendanceRepository.findByEmployeeIdAndDateRange(employeeId, fromDate, toDate);
     }
 }
