@@ -76,4 +76,8 @@ public class AttendanceAppealService {
 
         return appealRepository.save(appeal);
     }
+    public List<AttendanceAppeal> getAppealsByEmployeeAndStatus(String employeeId, AttendanceAppeal.Status status) {
+        return appealRepository.findByEmployee_EmployeeIdAndStatus(employeeId, status);
+    }
+
 }

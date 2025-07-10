@@ -53,6 +53,23 @@ public class AttendanceAppealController {
         AttendanceAppeal updated = appealService.updateStatus(id, request.getStatus(), request.getReviewedBy(), request.getNote());
         return ResponseEntity.ok(updated);
     }
+    @PreAuthorize("hasAnyRole('Admin', 'Hr', 'User')")
+    @GetMapping("/by-employee")
+    public ResponseEntity<List<AttendanceAppeal>> getAppealsByEmployeeAndOptionalStatus(
+            @RequestParam String employeeId,
+            @RequestParam(required = false) AttendanceAppeal.Status status
+    ) {
+        if (status != null) {
+            return ResponseEntity.ok(
+                    appealService.getAppealsByEmployeeAndStatus(employeeId, status)
+            );
+        } else {
+            return ResponseEntity.ok(
+                    appealService.getAppealsByEmployee(employeeId)
+            );
+        }
+    }
+
 
     // === DTOs ===
     @Data

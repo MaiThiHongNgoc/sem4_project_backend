@@ -38,27 +38,29 @@ public class AttendanceCalculationService {
             Date attendanceDate = logs.get(0).getAttendanceDate();
             QRAttendance checkIn = null;
             QRAttendance checkOut = null;
-            Attendance.Status finalStatus = Attendance.Status.Absent;
-            BigDecimal totalHours = BigDecimal.ZERO;
+            boolean onLeave = false;
 
             for (QRAttendance qr : logs) {
                 switch (qr.getStatus()) {
                     case CheckIn -> checkIn = qr;
                     case CheckOut -> checkOut = qr;
-                    case OnLeave -> finalStatus = Attendance.Status.OnLeave;
+                    case OnLeave -> onLeave = true;
                 }
             }
 
-            if (checkIn != null && checkOut != null) {
+            BigDecimal totalHours = BigDecimal.ZERO;
+            Attendance.Status finalStatus;
+
+            if (onLeave) {
+                finalStatus = Attendance.Status.OnLeave;
+            } else if (checkIn != null && checkOut != null && checkOut.getScanTime().after(checkIn.getScanTime())) {
                 long millis = checkOut.getScanTime().getTime() - checkIn.getScanTime().getTime();
                 long hours = millis / (1000 * 60 * 60);
                 totalHours = BigDecimal.valueOf(hours);
                 finalStatus = hours >= 8 ? Attendance.Status.Present : Attendance.Status.Late;
-
             } else if (checkIn != null) {
                 finalStatus = Attendance.Status.Late;
-
-            } else if (finalStatus != Attendance.Status.OnLeave) {
+            } else {
                 finalStatus = Attendance.Status.Absent;
             }
 
@@ -73,6 +75,7 @@ public class AttendanceCalculationService {
             attendanceRepository.save(attendance);
         }
     }
+
     public List<Attendance> getByEmployeeId(String employeeId) {
         return attendanceRepository.findByEmployeeIdWithEmployee(employeeId);
     }

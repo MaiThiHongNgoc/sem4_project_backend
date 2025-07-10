@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface AttendanceAppealRepository extends JpaRepository<AttendanceAppeal, String> {
     List<AttendanceAppeal> findByEmployee_EmployeeId(String employeeId);
+    List<AttendanceAppeal> findByEmployee_EmployeeIdAndStatus(String employeeId, AttendanceAppeal.Status status);
+
 }

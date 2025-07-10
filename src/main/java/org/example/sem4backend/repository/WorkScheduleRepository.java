@@ -12,7 +12,8 @@ import java.util.Optional;
 
 public interface WorkScheduleRepository extends JpaRepository<WorkSchedule, String> {
     @Query("SELECT w FROM WorkSchedule w WHERE w.employee.employeeId = :empId AND w.workDay = :workDay AND w.status = 'Active'")
-    Optional<WorkSchedule> findByEmployeeAndWorkDay(@Param("empId") String empId, @Param("workDay") LocalDate workDay);
+    List<WorkSchedule> findByEmployeeAndWorkDay(@Param("empId") String empId, @Param("workDay") LocalDate workDay);
+
 
     @Query("SELECT w FROM WorkSchedule w WHERE w.employee.employeeId = :empId AND w.scheduleInfo.scheduleInfoId = :infoId AND w.workDay = :workDay")
     Optional<WorkSchedule> findDuplicateSchedule(
@@ -35,6 +36,7 @@ public interface WorkScheduleRepository extends JpaRepository<WorkSchedule, Stri
             @Param("fromDate") LocalDate fromDate,
             @Param("toDate") LocalDate toDate
     );
+
 
 
 
