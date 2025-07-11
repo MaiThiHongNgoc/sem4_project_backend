@@ -12,7 +12,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -32,7 +31,6 @@ public class WorkScheduleController {
     public ApiResponse<List<WorkScheduleResponse>> createBulk(@RequestBody List<WorkScheduleRequest> requests) {
         return service.createBulk(requests);
     }
-
 
     @PreAuthorize("hasAnyRole('Admin','Hr','User')")
     @GetMapping
@@ -58,32 +56,35 @@ public class WorkScheduleController {
         return service.delete(id);
     }
 
-    @PreAuthorize("hasAnyRole('Admin','Hr','User')")
-    @GetMapping("/full")
-    public ResponseEntity<ApiResponse<List<WorkScheduleFullResponse>>> getAllSchedulesWithDetails() {
-        return ResponseEntity.ok(service.getAllWithDetails());
+    @PreAuthorize("hasAnyRole('Admin','Hr')")
+    @PutMapping("/soft-delete/{id}")
+    public ApiResponse<Void> softDelete(@PathVariable String id) {
+        return service.softDelete(id);
     }
 
     @PreAuthorize("hasAnyRole('Admin','Hr','User')")
-    @GetMapping("/filter")
-    public ResponseEntity<ApiResponse<List<WorkScheduleFullResponse>>> getFilteredSchedules(
-            @RequestParam(name = "empId", required = false) String employeeId,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate workDay
+    @GetMapping("/range")
+    public ApiResponse<List<WorkScheduleFullResponse>> getSchedulesByEmployeeAndDateRange(
+            @RequestParam String employeeId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate
     ) {
-        return ResponseEntity.ok(service.getFilteredSchedules(employeeId, workDay));
+        return service.getSchedulesByEmployeeAndDateRange(employeeId, fromDate, toDate);
     }
-
 
     @PreAuthorize("hasAnyRole('Admin','Hr','User')")
-    @GetMapping("/filter-range")
-    public ResponseEntity<ApiResponse<List<WorkScheduleFullResponse>>> getSchedulesByEmployeeAndDateRange(
-            @RequestParam(required = false) String employeeId,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate
+    @GetMapping("/editable")
+    public ApiResponse<List<WorkScheduleFullResponse>> getEditableSchedules(
+            @RequestParam String employeeId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate
     ) {
-        return ResponseEntity.ok(service.getSchedulesByEmployeeAndDateRange(employeeId, fromDate, toDate));
+        return service.getEditableSchedules(employeeId, fromDate, toDate);
     }
 
-
-
+    @PreAuthorize("hasAnyRole('Admin','Hr')")
+    @PutMapping("/approve-ot/{id}")
+    public ApiResponse<Void> approveOT(@PathVariable String id) {
+        return service.approveOvertime(id);
+    }
 }

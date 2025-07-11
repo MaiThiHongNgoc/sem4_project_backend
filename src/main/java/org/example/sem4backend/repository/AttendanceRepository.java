@@ -1,12 +1,14 @@
 package org.example.sem4backend.repository;
 
 import org.example.sem4backend.entity.Attendance;
+import org.example.sem4backend.entity.Employee;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface AttendanceRepository extends JpaRepository<Attendance, String> {
     List<Attendance> findByActiveStatus(Attendance.ActiveStatus status);
@@ -34,5 +36,8 @@ public interface AttendanceRepository extends JpaRepository<Attendance, String> 
             @Param("toDate") LocalDate toDate,
             @Param("status") String status
     );
+
+    Optional<Attendance> findByEmployeeAndAttendanceDate(Employee employee, java.sql.Date date);
+
 
 }

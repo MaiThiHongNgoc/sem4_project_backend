@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -26,6 +27,7 @@ public class AttendanceAppealController {
         AttendanceAppeal appeal = appealService.createAppeal(
                 request.getEmployeeId(),
                 request.getAttendanceId(),
+                request.getTargetDate(),
                 request.getReason(),
                 request.getEvidence()
         );
@@ -70,12 +72,21 @@ public class AttendanceAppealController {
         }
     }
 
+    // 5. GET /attendance-appeals/all
+    @PreAuthorize("hasAnyRole('Admin', 'Hr')")
+    @GetMapping("/all")
+    public ResponseEntity<List<AttendanceAppeal>> getAllAppeals() {
+        return ResponseEntity.ok(appealService.getAllAppeals());
+    }
+
+
 
     // === DTOs ===
     @Data
     public static class CreateAppealRequest {
         private String employeeId;
         private String attendanceId;
+        private Date targetDate;
         private String reason;
         private String evidence;
     }

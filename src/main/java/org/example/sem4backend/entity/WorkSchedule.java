@@ -26,6 +26,13 @@ public class WorkSchedule {
         if (this.scheduleId == null) {
             this.scheduleId = UUID.randomUUID().toString();
         }
+        if (this.isApproved == null) {
+            this.isApproved = this.shiftType == ShiftType.Normal; // Normal -> mặc định duyệt, OT thì chưa
+        }
+        if (this.status == null) {
+            // ✅ Nếu chưa có status, tự động đặt theo loại ca
+            this.status = (this.shiftType == ShiftType.Normal) ? Status.Active : Status.Inactive;
+        }
     }
 
     @ManyToOne
@@ -55,4 +62,16 @@ public class WorkSchedule {
         Active,
         Inactive
     }
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "shift_type", nullable = false)
+    ShiftType shiftType;
+
+    public enum ShiftType {
+        Normal,
+        OT
+    }
+
+    @Column(name = "is_approved")
+    Boolean isApproved;
 }

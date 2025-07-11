@@ -32,6 +32,10 @@ public class AttendanceAppeal {
     @Temporal(TemporalType.TIMESTAMP)
     Date appealDate;
 
+    @Column(name = "target_date", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    Date targetDate;
+
     @Column(name = "reason", columnDefinition = "TEXT", nullable = false)
     String reason;
 

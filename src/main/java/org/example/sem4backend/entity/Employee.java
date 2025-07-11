@@ -52,8 +52,9 @@ public class Employee {
     @Column(name = "address")
     String address;
 
-    @Column(name = "img")
-    String img;
+    @Column(name = "img", columnDefinition = "LONGTEXT")
+    private String img;
+
 
     @ManyToOne
     @JoinColumn(name = "department_id")

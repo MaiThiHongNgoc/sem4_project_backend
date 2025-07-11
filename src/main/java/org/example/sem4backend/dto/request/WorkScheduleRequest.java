@@ -24,4 +24,6 @@ public class WorkScheduleRequest {
     @JsonFormat(pattern = "HH:mm:ss")
     private Date endTime;
     String status;
+    private String shiftType; // "Normal" hoặc "OT"
+    private Boolean isApproved; // chỉ dùng cho admin nếu cần tạo thủ công
 }

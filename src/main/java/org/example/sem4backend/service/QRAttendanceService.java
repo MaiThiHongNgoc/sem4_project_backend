@@ -9,8 +9,10 @@ import org.example.sem4backend.repository.EmployeeRepository;
 import org.example.sem4backend.repository.QRAttendanceRepository;
 import org.example.sem4backend.repository.QRInfoRepository;
 import org.example.sem4backend.repository.WorkScheduleRepository;
+import org.example.sem4backend.util.FacePlusPlusUtil;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -71,10 +73,10 @@ public class QRAttendanceService {
         qrAttendance.setScanTime(scanTime);
         qrAttendance.setAttendanceDate(java.sql.Date.valueOf(today));
 
-        // 🔍 1. Tìm tất cả ca làm của nhân viên trong hôm nay
-        List<WorkSchedule> schedules = workScheduleRepository.findByEmployeeAndWorkDay(empId, today);
+        // 🔍 1. Tìm tất cả ca làm hợp lệ: Normal hoặc OT đã duyệt
+        List<WorkSchedule> schedules = workScheduleRepository.findValidSchedulesForAttendance(empId, today);
         if (schedules.isEmpty()) {
-            throw new RuntimeException("No work schedules found for today.");
+            throw new RuntimeException("Không tìm thấy ca làm hợp lệ để chấm công.");
         }
 
         // ⏰ 2. Tính giờ bắt đầu sớm nhất và giờ kết thúc muộn nhất
@@ -101,11 +103,9 @@ public class QRAttendanceService {
         // ✅ 4. Xác định trạng thái chấm công
         if (!hasCheckIn) {
             LocalTime lateThreshold = earliestStart.plusMinutes(15);
-            if (now.isBefore(lateThreshold)) {
-                qrAttendance.setStatus(QRAttendance.Status.CheckIn);
-            } else {
-                qrAttendance.setStatus(QRAttendance.Status.Late);
-            }
+            qrAttendance.setStatus(now.isBefore(lateThreshold)
+                    ? QRAttendance.Status.CheckIn
+                    : QRAttendance.Status.Late);
         } else if (!hasCheckOut) {
             qrAttendance.setStatus(QRAttendance.Status.CheckOut);
         } else {
@@ -120,7 +120,30 @@ public class QRAttendanceService {
         if (hasQR) {
             qrAttendance.setAttendanceMethod(QRAttendance.AttendanceMethod.QR);
         } else if (hasFace && hasGPS) {
-            qrAttendance.setAttendanceMethod(QRAttendance.AttendanceMethod.FaceGPS);
+            String employeeImage = employee.getImg(); // base64 từ bảng employee
+            String submittedImage = qrAttendance.getFaceRecognitionImage();
+
+            if (employeeImage == null || submittedImage == null) {
+                throw new RuntimeException("Missing employee image or submitted image for face match.");
+            }
+
+            try {
+                // In base64 ảnh (chỉ in 100 ký tự đầu)
+                System.out.println("📷 Ảnh nhân viên (base64): " + employeeImage.substring(0, Math.min(employeeImage.length(), 100)) + "...");
+                System.out.println("📷 Ảnh gửi lên (base64): " + submittedImage.substring(0, Math.min(submittedImage.length(), 100)) + "...");
+
+                // Gọi API và lấy confidence
+                double confidence = FacePlusPlusUtil.getConfidence(employeeImage, submittedImage);
+                System.out.println("✅ Độ chính xác nhận diện khuôn mặt (confidence): " + confidence + "%");
+
+                if (confidence < 85.0) {
+                    throw new RuntimeException("Face recognition failed: submitted face does not match employee image.");
+                }
+
+                qrAttendance.setAttendanceMethod(QRAttendance.AttendanceMethod.FaceGPS);
+            } catch (IOException e) {
+                throw new RuntimeException("Error during face comparison", e);
+            }
         } else {
             throw new RuntimeException("Invalid attendance method.");
         }
@@ -129,11 +152,12 @@ public class QRAttendanceService {
 
         QRAttendance saved = qrAttendanceRepository.save(qrAttendance);
 
-        // 📊 6. Gọi tổng hợp chấm công
+        // 📊 Tổng hợp chấm công
         attendanceCalculationService.generateDailyAttendanceSummary(saved.getAttendanceDate());
 
         return saved;
     }
+
 
 
     // Cập nhật bản ghi QR Attendance theo qrId

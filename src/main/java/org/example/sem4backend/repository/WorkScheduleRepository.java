@@ -26,6 +26,8 @@ public interface WorkScheduleRepository extends JpaRepository<WorkSchedule, Stri
     @Query("SELECT ws FROM WorkSchedule ws JOIN FETCH ws.scheduleInfo WHERE ws.employee.employeeId = :empId AND ws.workDay = :date")
     List<WorkSchedule> findByEmployeeIdAndWorkDay(@Param("empId") String empId, @Param("date") LocalDate date);
 
+    @Query("SELECT w FROM WorkSchedule w WHERE w.employee.employeeId = :empId AND w.workDay = :workDay AND w.isApproved = true")
+    List<WorkSchedule> findApprovedSchedulesByEmployeeAndDate(@Param("empId") String empId, @Param("workDay") LocalDate workDay);
 
     @Query("SELECT w FROM WorkSchedule w " +
             "WHERE (:empId IS NULL OR w.employee.employeeId = :empId) " +
@@ -36,6 +38,14 @@ public interface WorkScheduleRepository extends JpaRepository<WorkSchedule, Stri
             @Param("fromDate") LocalDate fromDate,
             @Param("toDate") LocalDate toDate
     );
+
+    @Query("SELECT ws FROM WorkSchedule ws " +
+            "WHERE ws.employee.employeeId = :employeeId " +
+            "AND ws.workDay = :workDay " +
+            "AND ws.status = 'Active'")
+    List<WorkSchedule> findValidSchedulesForAttendance(@Param("employeeId") String employeeId,
+                                                       @Param("workDay") LocalDate workDay);
+
 
 
 

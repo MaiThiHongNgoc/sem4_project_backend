@@ -148,4 +148,17 @@ public class LeaveService {
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
+
+    public LeaveResponse updateLeaveStatus(String leaveId, String status) {
+        Leave leave = leaveRepository.findById(leaveId)
+                .orElseThrow(() -> new AppException(ErrorCode.LEAVE_REQUEST_NOT_FOUND));
+
+        try {
+            leave.setStatus(Leave.LeaveStatus.valueOf(status));
+        } catch (IllegalArgumentException e) {
+            throw new AppException(ErrorCode.INVALID_LEAVE_STATUS, "Invalid status: " + status + ". Valid values: Pending, Approved, Rejected");
+        }
+        leaveRepository.save(leave);
+        return mapToResponse(leave);
+    }
 }

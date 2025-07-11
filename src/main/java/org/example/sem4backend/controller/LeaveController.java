@@ -56,4 +56,11 @@ public class LeaveController {
         return ResponseEntity.ok(responses);
     }
 
+    @PreAuthorize("hasAnyRole('Hr', 'Admin')")
+    @PutMapping("/{id}")
+    public ApiResponse<LeaveResponse> updateLeaveStatus(@PathVariable String id, @RequestBody LeaveRequest request) {
+        LeaveResponse response = leaveService.updateLeaveStatus(id, request.getStatus());
+        return ApiResponse.success(ErrorCode.OPERATION_SUCCESSFUL, response);
+    }
+
 }
