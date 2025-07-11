@@ -2,6 +2,8 @@ package org.example.sem4backend.dto.response;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
+import java.time.LocalDate;
 import java.util.Date;
 
 @Data
@@ -15,8 +17,10 @@ public class WorkScheduleResponse {
     String employeeName;
     String scheduleInfoId;
     String scheduleInfoName;       
-    Date workDay;
+    LocalDate workDay;
     Date startTime;
     Date endTime;
     String status;
+    private String shiftType; // "Normal" hoặc "OT"
+    private Boolean isApproved; // chỉ dùng cho admin nếu cần tạo thủ công
 }

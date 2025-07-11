@@ -12,6 +12,7 @@ import org.example.sem4backend.repository.LeaveRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.Date;
 import java.util.List;
@@ -115,5 +116,49 @@ public class LeaveService {
         response.setStatus(leave.getStatus().name());
         response.setActiveStatus(leave.getActiveStatus().name());
         return response;
+    }
+
+    public List<LeaveResponse> getLeavesByEmployeeAndStatus(String employeeId, String statusFilter) {
+        // Validate employeeId
+        if (!StringUtils.hasText(employeeId)) {
+            throw new AppException(ErrorCode.INVALID_EMPLOYEE_ID, "Employee ID is required");
+        }
+
+        // Check employee existence
+        Employee employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new AppException(ErrorCode.EMPLOYEE_NOT_FOUND, "Employee not found: " + employeeId));
+
+        List<Leave> leaves;
+
+        // Nếu không truyền trạng thái → lấy tất cả đơn
+        if (!StringUtils.hasText(statusFilter)) {
+            leaves = leaveRepository.findByEmployee_EmployeeId(employeeId);
+        } else {
+            // Chuyển status string thành enum LeaveStatus
+            Leave.LeaveStatus status;
+            try {
+                status = Leave.LeaveStatus.valueOf(statusFilter);
+            } catch (IllegalArgumentException e) {
+                throw new AppException(ErrorCode.INVALID_STATUS, "Trạng thái không hợp lệ: " + statusFilter);
+            }
+            leaves = leaveRepository.findByEmployee_EmployeeIdAndStatus(employeeId, status);
+        }
+
+        return leaves.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    public LeaveResponse updateLeaveStatus(String leaveId, String status) {
+        Leave leave = leaveRepository.findById(leaveId)
+                .orElseThrow(() -> new AppException(ErrorCode.LEAVE_REQUEST_NOT_FOUND));
+
+        try {
+            leave.setStatus(Leave.LeaveStatus.valueOf(status));
+        } catch (IllegalArgumentException e) {
+            throw new AppException(ErrorCode.INVALID_LEAVE_STATUS, "Invalid status: " + status + ". Valid values: Pending, Approved, Rejected");
+        }
+        leaveRepository.save(leave);
+        return mapToResponse(leave);
     }
 }

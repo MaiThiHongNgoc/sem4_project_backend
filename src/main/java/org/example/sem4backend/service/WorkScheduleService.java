@@ -3,6 +3,7 @@ package org.example.sem4backend.service;
 import lombok.RequiredArgsConstructor;
 import org.example.sem4backend.dto.request.WorkScheduleRequest;
 import org.example.sem4backend.dto.response.ApiResponse;
+import org.example.sem4backend.dto.response.WorkScheduleFullResponse;
 import org.example.sem4backend.dto.response.WorkScheduleResponse;
 import org.example.sem4backend.entity.Employee;
 import org.example.sem4backend.entity.WorkSchedule;
@@ -12,11 +13,13 @@ import org.example.sem4backend.exception.ErrorCode;
 import org.example.sem4backend.repository.EmployeeRepository;
 import org.example.sem4backend.repository.WorkScheduleInfoRepository;
 import org.example.sem4backend.repository.WorkScheduleRepository;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,7 +45,7 @@ public class WorkScheduleService {
                 .workDay(request.getWorkDay())
                 .startTime(request.getStartTime())
                 .endTime(request.getEndTime())
-                .status(WorkSchedule.Status.valueOf(request.getStatus()))
+                .shiftType(WorkSchedule.ShiftType.valueOf(request.getShiftType())) // bạn cần thêm shiftType từ request
                 .build();
         repository.save(schedule);
 
@@ -60,15 +63,13 @@ public class WorkScheduleService {
                         .orElseThrow(() -> new AppException(ErrorCode.WORK_SCHEDULE_INFO_NOT_FOUND));
             }
 
-            // Kiểm tra xem ca này đã đăng ký chưa (tránh đăng lại)
             Optional<WorkSchedule> existing = repository.findDuplicateSchedule(
                     employee.getEmployeeId(),
                     info != null ? info.getScheduleInfoId() : null,
                     request.getWorkDay()
             );
             if (existing.isPresent()) {
-                // Có thể throw lỗi nếu muốn chặn toàn bộ
-                return null; // bỏ qua ca này
+                return null;
             }
 
             WorkSchedule schedule = WorkSchedule.builder()
@@ -77,7 +78,7 @@ public class WorkScheduleService {
                     .workDay(request.getWorkDay())
                     .startTime(request.getStartTime())
                     .endTime(request.getEndTime())
-                    .status(WorkSchedule.Status.valueOf(request.getStatus()))
+                    .shiftType(WorkSchedule.ShiftType.valueOf(request.getShiftType())) // bạn cần thêm shiftType từ request
                     .build();
 
             return mapToResponse(repository.save(schedule));
@@ -85,7 +86,6 @@ public class WorkScheduleService {
 
         return ApiResponse.success(ErrorCode.OPERATION_SUCCESSFUL, responses);
     }
-
 
     public ApiResponse<List<WorkScheduleResponse>> getAll() {
         return ApiResponse.success(repository.findAll().stream()
@@ -129,11 +129,19 @@ public class WorkScheduleService {
         return ApiResponse.success(ErrorCode.OPERATION_SUCCESSFUL);
     }
 
+    public ApiResponse<Void> softDelete(String id) {
+        WorkSchedule schedule = repository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.WORK_SCHEDULE_NOT_FOUND));
+        schedule.setStatus(WorkSchedule.Status.Inactive);
+        repository.save(schedule);
+        return ApiResponse.success(ErrorCode.OPERATION_SUCCESSFUL);
+    }
+
     private WorkScheduleResponse mapToResponse(WorkSchedule schedule) {
         return WorkScheduleResponse.builder()
                 .scheduleId(schedule.getScheduleId())
                 .employeeId(schedule.getEmployee().getEmployeeId())
-                .employeeName(schedule.getEmployee().getFullName()) // hoặc .getName() tùy field
+                .employeeName(schedule.getEmployee().getFullName())
                 .scheduleInfoId(schedule.getScheduleInfo() != null ? schedule.getScheduleInfo().getScheduleInfoId() : null)
                 .scheduleInfoName(schedule.getScheduleInfo() != null ? schedule.getScheduleInfo().getName() : null)
                 .workDay(schedule.getWorkDay())
@@ -143,4 +151,82 @@ public class WorkScheduleService {
                 .build();
     }
 
+    public ApiResponse<List<WorkScheduleFullResponse>> getSchedulesByEmployeeAndDateRange(String employeeId, LocalDate fromDate, LocalDate toDate) {
+        List<WorkSchedule> schedules = repository.findByEmployeeAndDateRange(employeeId, fromDate, toDate);
+        List<WorkScheduleFullResponse> responses = schedules.stream().map(this::mapToFullResponse).collect(Collectors.toList());
+        return ApiResponse.success(responses);
+    }
+
+    public ApiResponse<List<WorkScheduleFullResponse>> getEditableSchedules(String employeeId, LocalDate fromDate, LocalDate toDate) {
+        List<WorkSchedule> schedules = repository.findByEmployeeAndDateRange(employeeId, fromDate, toDate);
+        List<WorkScheduleFullResponse> responses = schedules.stream()
+                .filter(ws -> ws.getStatus() == WorkSchedule.Status.Active)
+                .map(this::mapToFullResponse).collect(Collectors.toList());
+        return ApiResponse.success(responses);
+    }
+
+    private WorkScheduleFullResponse mapToFullResponse(WorkSchedule ws) {
+        return WorkScheduleFullResponse.builder()
+                .scheduleId(ws.getScheduleId())
+                .employeeId(ws.getEmployee().getEmployeeId())
+                .employeeName(ws.getEmployee().getFullName())
+                .scheduleInfoId(ws.getScheduleInfo() != null ? ws.getScheduleInfo().getScheduleInfoId() : null)
+                .scheduleInfoName(ws.getScheduleInfo() != null ? ws.getScheduleInfo().getName() : null)
+                .scheduleStartTime(ws.getScheduleInfo() != null ? ws.getScheduleInfo().getDefaultStartTime() : null)
+                .scheduleEndTime(ws.getScheduleInfo() != null ? ws.getScheduleInfo().getDefaultEndTime() : null)
+                .workDay(ws.getWorkDay())
+                .startTime(ws.getStartTime())
+                .endTime(ws.getEndTime())
+                .status(ws.getStatus().name())
+                .build();
+    }
+
+    @Scheduled(cron = "0 0 7 * * MON")
+    public void autoGenerateDefaultSchedules() {
+        Optional<WorkScheduleInfo> defaultShiftOpt = scheduleInfoRepo.findByName("Normal");
+
+        if (defaultShiftOpt.isEmpty()) {
+            System.err.println("⚠️ Không tìm thấy ca 'Normal'. Bỏ qua việc sinh lịch tự động.");
+            return;
+        }
+
+        WorkScheduleInfo defaultShift = defaultShiftOpt.get();
+
+        List<Employee> employees = employeeRepo.findAll();
+        LocalDate today = LocalDate.now();
+        LocalDate monday = today.with(DayOfWeek.MONDAY);
+
+        for (int i = 0; i < 5; i++) {
+            LocalDate workDate = monday.plusDays(i);
+
+            for (Employee employee : employees) {
+                boolean exists = repository
+                        .findDuplicateSchedule(employee.getEmployeeId(), defaultShift.getScheduleInfoId(), workDate)
+                        .isPresent();
+
+                if (!exists) {
+                    WorkSchedule schedule = WorkSchedule.builder()
+                            .employee(employee)
+                            .scheduleInfo(defaultShift)
+                            .workDay(workDate)
+                            .startTime(defaultShift.getDefaultStartTime())
+                            .endTime(defaultShift.getDefaultEndTime())
+                            .status(WorkSchedule.Status.Active)
+                            .build();
+                    repository.save(schedule);
+                }
+            }
+        }
+
+        System.out.println("✅ Đã sinh lịch làm việc mặc định cho tuần mới (ca 'Normal').");
+    }
+
+
+    public ApiResponse<Void> approveOvertime(String scheduleId) {
+        WorkSchedule schedule = repository.findById(scheduleId)
+                .orElseThrow(() -> new AppException(ErrorCode.WORK_SCHEDULE_NOT_FOUND));
+        schedule.setStatus(WorkSchedule.Status.Active);
+        repository.save(schedule);
+        return ApiResponse.success(ErrorCode.OPERATION_SUCCESSFUL);
+    }
 }

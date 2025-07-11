@@ -8,6 +8,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -29,6 +30,13 @@ public class AttendanceController {
     public List<Attendance> getAttendancesWithEmployee() {
         return attendanceRepository.findActiveWithEmployee(Attendance.ActiveStatus.Active);
     }
+
+    @GetMapping("/by-employee")
+    @PreAuthorize("hasAnyRole('Admin', 'Hr', 'User')")
+    public List<Attendance> getAttendancesByEmployeeId(@RequestParam String employeeId) {
+        return calculationService.getByEmployeeId(employeeId);
+    }
+
 
     @PostMapping
     public Attendance create(@RequestBody Attendance attendance) {
@@ -58,4 +66,15 @@ public class AttendanceController {
         calculationService.generateDailyAttendanceSummary(date);
         return "Attendance summary generated for " + date;
     }
+
+    @GetMapping("/filter-range")
+    public List<Attendance> getAttendanceByEmployeeAndDateRange(
+            @RequestParam String employeeId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            @RequestParam(required = false) String status
+    ) {
+        return calculationService.getByEmployeeAndDateRange(employeeId, fromDate, toDate, status);
+    }
+
 }

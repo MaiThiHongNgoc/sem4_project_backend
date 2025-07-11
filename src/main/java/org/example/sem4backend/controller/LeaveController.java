@@ -6,6 +6,7 @@ import org.example.sem4backend.dto.response.ApiResponse;
 import org.example.sem4backend.dto.response.LeaveResponse;
 import org.example.sem4backend.exception.ErrorCode;
 import org.example.sem4backend.service.LeaveService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,4 +46,21 @@ public class LeaveController {
         leaveService.deleteLeave(id);
         return ApiResponse.success(ErrorCode.OPERATION_SUCCESSFUL);
     }
+    @PreAuthorize("hasAnyRole('User', 'Hr', 'Admin')")
+    @GetMapping("/employee/{employeeId}/leaves")
+    public ResponseEntity<List<LeaveResponse>> getLeavesByEmployee(
+            @PathVariable String employeeId,
+            @RequestParam(required = false) String status // optional: Pending, Approved, Rejected
+    ) {
+        List<LeaveResponse> responses = leaveService.getLeavesByEmployeeAndStatus(employeeId, status);
+        return ResponseEntity.ok(responses);
+    }
+
+    @PreAuthorize("hasAnyRole('Hr', 'Admin')")
+    @PutMapping("/{id}")
+    public ApiResponse<LeaveResponse> updateLeaveStatus(@PathVariable String id, @RequestBody LeaveRequest request) {
+        LeaveResponse response = leaveService.updateLeaveStatus(id, request.getStatus());
+        return ApiResponse.success(ErrorCode.OPERATION_SUCCESSFUL, response);
+    }
+
 }

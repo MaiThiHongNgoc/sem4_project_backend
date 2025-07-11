@@ -17,4 +17,5 @@ public class LeaveRequest {
     Date leaveStartDate;
     Date leaveEndDate;
     String leaveType;
+    String status;
 }

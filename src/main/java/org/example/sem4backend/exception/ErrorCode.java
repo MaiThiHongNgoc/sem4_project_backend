@@ -44,6 +44,7 @@ public enum ErrorCode {
     LEAVE_REQUEST_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy yêu cầu nghỉ phép"),
     INVALID_LEAVE_DATE(HttpStatus.BAD_REQUEST, "Ngày nghỉ không hợp lệ"),
     LEAVE_OVERLAP(HttpStatus.CONFLICT, "Thời gian nghỉ bị trùng với lịch làm việc hoặc nghỉ khác"),
+    INVALID_LEAVE_STATUS(HttpStatus.BAD_REQUEST, "Trạng thái nghỉ phép không hợp lệ"),
 
     // ==== Lịch làm việc ====
     WORK_SCHEDULE_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy thông tin lịch làm việc mẫu"),
