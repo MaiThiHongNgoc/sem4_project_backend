@@ -57,7 +57,7 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'hrproject'
+          app-name: 'hr-sem4-project'
           slot-name: 'Production'
           package: '*.jar'
           
