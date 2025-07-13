@@ -46,7 +46,24 @@ public interface WorkScheduleRepository extends JpaRepository<WorkSchedule, Stri
     List<WorkSchedule> findValidSchedulesForAttendance(@Param("employeeId") String employeeId,
                                                        @Param("workDay") LocalDate workDay);
 
+    List<WorkSchedule> findByEmployee_EmployeeIdAndShiftTypeAndStatus(String employeeId, WorkSchedule.ShiftType shiftType, WorkSchedule.Status status);
 
+    // Nếu có status
+    @Query("SELECT ws FROM WorkSchedule ws WHERE ws.employee.employeeId = :employeeId AND ws.shiftType = 'OT' AND ws.status = :status AND ws.workDay BETWEEN :fromDate AND :toDate")
+    List<WorkSchedule> findOTByEmployeeAndStatusAndDateRange(
+            String employeeId,
+            WorkSchedule.Status status,
+            LocalDate fromDate,
+            LocalDate toDate
+    );
+
+    // Nếu không truyền status (lấy hết OT)
+    @Query("SELECT ws FROM WorkSchedule ws WHERE ws.employee.employeeId = :employeeId AND ws.shiftType = 'OT' AND ws.workDay BETWEEN :fromDate AND :toDate")
+    List<WorkSchedule> findOTByEmployeeAndDateRange(
+            String employeeId,
+            LocalDate fromDate,
+            LocalDate toDate
+    );
 
 
 

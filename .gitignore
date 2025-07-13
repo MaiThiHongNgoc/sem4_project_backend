@@ -31,4 +31,11 @@ build/
 
 ### VS Code ###
 .vscode/
-src/main/resources/firebase-service-account.json 
+
+src/main/resources/firebase-service-account.json
+**/firebase-service-account.json
+
+
+# .gitignore
+firebase-service-account.json
+
