@@ -32,6 +32,13 @@ build/
 ### VS Code ###
 .vscode/
 
+<<<<<<< HEAD
+=======
+src/main/resources/firebase-service-account.json
+**/firebase-service-account.json
+
+
+>>>>>>> HongNgoc
 # .gitignore
 firebase-service-account.json
 

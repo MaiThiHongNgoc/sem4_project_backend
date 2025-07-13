@@ -79,16 +79,23 @@ public class QRAttendanceService {
             throw new RuntimeException("Không tìm thấy ca làm hợp lệ để chấm công.");
         }
 
-        // ⏰ 2. Tính giờ bắt đầu sớm nhất và giờ kết thúc muộn nhất
+        // ⏰ 2. Tính giờ bắt đầu sớm nhất và giờ kết thúc muộn nhất (ưu tiên default)
         LocalTime earliestStart = schedules.stream()
-                .map(s -> ((Time) s.getStartTime()).toLocalTime())
+                .map(s -> {
+                    Time defaultStart = s.getScheduleInfo() != null ? (Time) s.getScheduleInfo().getDefaultStartTime() : null;
+                    return defaultStart != null ? defaultStart.toLocalTime() : ((Time) s.getStartTime()).toLocalTime();
+                })
                 .min(LocalTime::compareTo)
                 .orElseThrow();
 
         LocalTime latestEnd = schedules.stream()
-                .map(s -> ((Time) s.getEndTime()).toLocalTime())
+                .map(s -> {
+                    Time defaultEnd = s.getScheduleInfo() != null ? (Time) s.getScheduleInfo().getDefaultEndTime() : null;
+                    return defaultEnd != null ? defaultEnd.toLocalTime() : ((Time) s.getEndTime()).toLocalTime();
+                })
                 .max(LocalTime::compareTo)
                 .orElseThrow();
+
 
         // 📋 3. Kiểm tra chấm công hôm nay
         List<QRAttendance> todayRecords = qrAttendanceRepository.findByEmployeeAndAttendanceDate(
@@ -120,29 +127,26 @@ public class QRAttendanceService {
         if (hasQR) {
             qrAttendance.setAttendanceMethod(QRAttendance.AttendanceMethod.QR);
         } else if (hasFace && hasGPS) {
-            String employeeImage = employee.getImg(); // base64 từ bảng employee
-            String submittedImage = qrAttendance.getFaceRecognitionImage();
+            // Ảnh base64 từ bảng employee và từ client
+            String employeeImage = cleanBase64(employee.getImg());
+            String submittedImage = cleanBase64(qrAttendance.getFaceRecognitionImage());
 
             if (employeeImage == null || submittedImage == null) {
                 throw new RuntimeException("Missing employee image or submitted image for face match.");
             }
 
             try {
-                // In base64 ảnh (chỉ in 100 ký tự đầu)
-                System.out.println("📷 Ảnh nhân viên (base64): " + employeeImage.substring(0, Math.min(employeeImage.length(), 100)) + "...");
-                System.out.println("📷 Ảnh gửi lên (base64): " + submittedImage.substring(0, Math.min(submittedImage.length(), 100)) + "...");
-
-                // Gọi API và lấy confidence
                 double confidence = FacePlusPlusUtil.getConfidence(employeeImage, submittedImage);
                 System.out.println("✅ Độ chính xác nhận diện khuôn mặt (confidence): " + confidence + "%");
 
                 if (confidence < 85.0) {
-                    throw new RuntimeException("Face recognition failed: submitted face does not match employee image.");
+                    throw new RuntimeException("Nhận diện khuôn mặt thất bại: Ảnh không khớp (độ chính xác: " + confidence + "%)");
                 }
 
                 qrAttendance.setAttendanceMethod(QRAttendance.AttendanceMethod.FaceGPS);
             } catch (IOException e) {
-                throw new RuntimeException("Error during face comparison", e);
+                System.err.println("❌ Lỗi khi gọi API Face++: " + e.getMessage());
+                throw new RuntimeException("Không thể nhận diện khuôn mặt: " + e.getMessage(), e);
             }
         } else {
             throw new RuntimeException("Invalid attendance method.");
@@ -231,6 +235,14 @@ public class QRAttendanceService {
         return qrAttendanceRepository.findByEmployeeIdWithEmployee(employeeId);
     }
 
+
+    private String cleanBase64(String base64) {
+        if (base64 == null) return null;
+        if (base64.contains(",")) {
+            return base64.substring(base64.indexOf(",") + 1).trim();
+        }
+        return base64.trim();
+    }
 
 
 }

@@ -1,6 +1,8 @@
 package org.example.sem4backend.util;
 
 import okhttp3.*;
+import org.json.JSONObject;
+
 import java.io.IOException;
 
 public class FacePlusPlusUtil {
@@ -10,6 +12,21 @@ public class FacePlusPlusUtil {
     private static final String API_URL = "https://api-us.faceplusplus.com/facepp/v3/compare";
 
     public static double getConfidence(String base64Img1, String base64Img2) throws IOException {
+        base64Img1 = cleanBase64(base64Img1);
+        base64Img2 = cleanBase64(base64Img2);
+
+        if (base64Img1 == null || base64Img1.isEmpty() || base64Img2 == null || base64Img2.isEmpty()) {
+            throw new IOException("Base64 image is empty or null");
+        }
+
+        if (base64Img1.length() > 2_000_000 || base64Img2.length() > 2_000_000) {
+            throw new IOException("Base64 image is too large. Must be under 2MB.");
+        }
+
+        // Log thông tin base64 ảnh để debug
+        System.out.println("📷 [Ảnh 1] length: " + base64Img1.length() + ", starts with: " + base64Img1.substring(0, 20));
+        System.out.println("📷 [Ảnh 2] length: " + base64Img2.length() + ", starts with: " + base64Img2.substring(0, 20));
+
         OkHttpClient client = new OkHttpClient();
 
         RequestBody formBody = new FormBody.Builder()
@@ -25,15 +42,29 @@ public class FacePlusPlusUtil {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
+            String responseBody = response.body() != null ? response.body().string() : "";
+
             if (!response.isSuccessful()) {
-                throw new IOException("API call failed: " + response);
+                System.err.println("❌ Face++ API error: " + response.code() + " - " + responseBody);
+                throw new IOException("API call failed: " + response.code() + " - " + responseBody);
             }
 
-            String json = response.body().string();
+            // Parse JSON để lấy confidence
+            JSONObject json = new JSONObject(responseBody);
+            if (!json.has("confidence")) {
+                throw new IOException("No 'confidence' in Face++ response. Full response: " + responseBody);
+            }
 
-            // Lấy confidence chính xác hơn bằng JSON parsing (tốt hơn regex nếu có thể dùng thư viện như Jackson/Gson)
-            String confidenceStr = json.replaceAll(".*\"confidence\":\\s*(\\d+\\.?\\d*).*", "$1");
-            return Double.parseDouble(confidenceStr);
+            return json.getDouble("confidence");
         }
+    }
+
+    // Hàm loại bỏ tiền tố "data:image/jpeg;base64,"
+    private static String cleanBase64(String base64) {
+        if (base64 == null) return null;
+        if (base64.contains(",")) {
+            return base64.substring(base64.indexOf(",") + 1).trim();
+        }
+        return base64.trim();
     }
 }

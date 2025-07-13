@@ -5,6 +5,7 @@ import org.example.sem4backend.dto.request.WorkScheduleRequest;
 import org.example.sem4backend.dto.response.ApiResponse;
 import org.example.sem4backend.dto.response.WorkScheduleFullResponse;
 import org.example.sem4backend.dto.response.WorkScheduleResponse;
+import org.example.sem4backend.entity.WorkSchedule;
 import org.example.sem4backend.service.WorkScheduleService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/work-schedules")
@@ -87,4 +89,34 @@ public class WorkScheduleController {
     public ApiResponse<Void> approveOT(@PathVariable String id) {
         return service.approveOvertime(id);
     }
+
+    @PreAuthorize("hasAnyRole('Admin','Hr','User')")
+    @GetMapping("/employee/{employeeId}/ot")
+    public ApiResponse<List<WorkScheduleFullResponse>> getOTByStatus(
+            @PathVariable String employeeId,
+            @RequestParam(name = "status") WorkSchedule.Status status) {
+        return service.getOvertimeSchedulesByStatus(employeeId, status);
+    }
+
+    @PreAuthorize("hasAnyRole('Admin','Hr','User')")
+    @GetMapping("/employee/{id}/ot-by-status")
+    public ResponseEntity<?> getOTByStatusOrAll(
+            @PathVariable("id") String employeeId,
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam("fromDate") String fromDate,
+            @RequestParam("toDate") String toDate
+    ) {
+        LocalDate from = LocalDate.parse(fromDate);
+        LocalDate to = LocalDate.parse(toDate);
+
+        List<WorkSchedule> schedules = service.getOvertimeSchedulesFlexible(employeeId, status, from, to);
+        List<WorkScheduleFullResponse> responses = schedules.stream()
+                .map(service::mapToFullResponse)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(responses);
+    }
+
+
+
 }

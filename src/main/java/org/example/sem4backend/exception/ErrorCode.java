@@ -31,6 +31,8 @@ public enum ErrorCode {
 
     // ==== Lịch sử làm việc ====
     HISTORY_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy lịch sử làm việc"),
+    INVALID_REQUEST(HttpStatus.NOT_FOUND,"Yêu cầu không hợp lệ"),
+
 
     // ==== QR / Chấm công ====
     QR_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy mã QR"),

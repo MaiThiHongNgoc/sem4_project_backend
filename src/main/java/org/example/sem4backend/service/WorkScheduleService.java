@@ -165,7 +165,7 @@ public class WorkScheduleService {
         return ApiResponse.success(responses);
     }
 
-    private WorkScheduleFullResponse mapToFullResponse(WorkSchedule ws) {
+    public WorkScheduleFullResponse mapToFullResponse(WorkSchedule ws) {
         return WorkScheduleFullResponse.builder()
                 .scheduleId(ws.getScheduleId())
                 .employeeId(ws.getEmployee().getEmployeeId())
@@ -212,6 +212,7 @@ public class WorkScheduleService {
                             .startTime(defaultShift.getDefaultStartTime())
                             .endTime(defaultShift.getDefaultEndTime())
                             .status(WorkSchedule.Status.Active)
+                            .shiftType(WorkSchedule.ShiftType.Normal)
                             .build();
                     repository.save(schedule);
                 }
@@ -229,4 +230,49 @@ public class WorkScheduleService {
         repository.save(schedule);
         return ApiResponse.success(ErrorCode.OPERATION_SUCCESSFUL);
     }
+
+    public ApiResponse<List<WorkScheduleFullResponse>> getOvertimeSchedulesByStatus(String employeeId, WorkSchedule.Status status) {
+        List<WorkSchedule> schedules = repository
+                .findByEmployee_EmployeeIdAndShiftTypeAndStatus(employeeId, WorkSchedule.ShiftType.OT, status);
+
+        List<WorkScheduleFullResponse> responses = schedules.stream()
+                .map(this::mapToFullResponse)
+                .collect(Collectors.toList());
+
+        return ApiResponse.success(responses);
+    }
+
+    public ApiResponse<List<WorkScheduleFullResponse>> getOvertimeSchedulesByStatusAndDateRange(
+            String employeeId,
+            WorkSchedule.Status status,
+            LocalDate fromDate,
+            LocalDate toDate) {
+
+        List<WorkSchedule> schedules = repository.findOTByEmployeeAndStatusAndDateRange(employeeId, status, fromDate, toDate);
+
+        List<WorkScheduleFullResponse> responses = schedules.stream()
+                .map(this::mapToFullResponse)
+                .collect(Collectors.toList());
+
+        return ApiResponse.success(responses);
+    }
+
+    public List<WorkSchedule> getOvertimeSchedulesFlexible(String employeeId, String statusStr, LocalDate fromDate, LocalDate toDate) {
+        if (statusStr != null && !statusStr.isBlank()) {
+            try {
+                WorkSchedule.Status status = Arrays.stream(WorkSchedule.Status.values())
+                        .filter(s -> s.name().equalsIgnoreCase(statusStr))
+                        .findFirst()
+                        .orElseThrow(() -> new AppException(ErrorCode.INVALID_REQUEST, "Trạng thái không hợp lệ: " + statusStr));
+
+                return repository.findOTByEmployeeAndStatusAndDateRange(employeeId, status, fromDate, toDate);
+            } catch (IllegalArgumentException e) {
+                throw new AppException(ErrorCode.INVALID_REQUEST, "Trạng thái không hợp lệ: " + statusStr);
+            }
+        } else {
+            return repository.findOTByEmployeeAndDateRange(employeeId, fromDate, toDate);
+        }
+    }
+
+
 }
