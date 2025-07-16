@@ -8,6 +8,7 @@ import org.example.sem4backend.repository.QRAttendanceRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -23,8 +24,10 @@ public class AttendanceCalculationService {
     }
 
     public void generateDailyAttendanceSummary(Date date) {
+        // Lấy danh sách QR logs trong ngày (cần đảm bảo date có full ngày)
         List<QRAttendance> qrList = qrAttendanceRepository.findAllByDateRange(date, date);
 
+        // Gom nhóm theo nhân viên
         Map<String, List<QRAttendance>> groupedByEmployee = new HashMap<>();
         for (QRAttendance qr : qrList) {
             String empId = qr.getEmployee().getEmployeeId();
@@ -40,10 +43,19 @@ public class AttendanceCalculationService {
             QRAttendance checkOut = null;
             boolean onLeave = false;
 
+            // Chọn bản ghi check-in sớm nhất và check-out trễ nhất
             for (QRAttendance qr : logs) {
                 switch (qr.getStatus()) {
-                    case CheckIn -> checkIn = qr;
-                    case CheckOut -> checkOut = qr;
+                    case CheckIn, Late -> {
+                        if (checkIn == null || qr.getScanTime().before(checkIn.getScanTime())) {
+                            checkIn = qr;
+                        }
+                    }
+                    case CheckOut -> {
+                        if (checkOut == null || qr.getScanTime().after(checkOut.getScanTime())) {
+                            checkOut = qr;
+                        }
+                    }
                     case OnLeave -> onLeave = true;
                 }
             }
@@ -55,9 +67,12 @@ public class AttendanceCalculationService {
                 finalStatus = Attendance.Status.OnLeave;
             } else if (checkIn != null && checkOut != null && checkOut.getScanTime().after(checkIn.getScanTime())) {
                 long millis = checkOut.getScanTime().getTime() - checkIn.getScanTime().getTime();
-                long hours = millis / (1000 * 60 * 60);
-                totalHours = BigDecimal.valueOf(hours);
-                finalStatus = hours >= 8 ? Attendance.Status.Present : Attendance.Status.Late;
+                BigDecimal hours = BigDecimal.valueOf(millis)
+                        .divide(BigDecimal.valueOf(1000 * 60 * 60), 2, RoundingMode.HALF_UP);
+                totalHours = hours;
+                finalStatus = hours.compareTo(BigDecimal.valueOf(8)) >= 0
+                        ? Attendance.Status.Present
+                        : Attendance.Status.Late;
             } else if (checkIn != null) {
                 finalStatus = Attendance.Status.Late;
             } else {
@@ -75,6 +90,7 @@ public class AttendanceCalculationService {
             attendanceRepository.save(attendance);
         }
     }
+
 
     public List<Attendance> getByEmployeeId(String employeeId) {
         return attendanceRepository.findByEmployeeIdWithEmployee(employeeId);
