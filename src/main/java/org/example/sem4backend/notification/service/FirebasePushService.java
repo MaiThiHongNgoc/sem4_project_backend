@@ -37,8 +37,10 @@ public class FirebasePushService {
 
         Map<String, Object> message = Map.of(
                 "token", token,
-                "notification", Map.of("title", title, "body", body)
+                "notification", Map.of("title", title, "body", body),
+                "data", Map.of("userId", "3cdd32d0-4e74-11f0-9cdd-7ced8d346971")
         );
+
 
         Map<String, Object> requestBody = Map.of("message", message);
 
