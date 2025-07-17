@@ -92,4 +92,24 @@ public class NotificationController {
         );
         return ResponseEntity.ok("✅ Topic " + topic + " | Status: " + (sent ? "Success" : "Failed"));
     }
+
+    @PostMapping("/mark-read")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> markAsRead(@RequestBody Map<String, String> body) {
+        String userId = body.get("userId");
+        String notificationId = body.get("notificationId");
+
+        notificationService.markAsRead(userId, notificationId);
+        return ResponseEntity.ok("Notification marked as read.");
+    }
+    @PostMapping("/mark-all-read")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> markAllAsRead(@RequestBody Map<String, Object> body) {
+        String userId = (String) body.get("userId");
+        List<String> notificationIds = (List<String>) body.get("notificationIds");
+
+        notificationService.markAllAsRead(userId, notificationIds);
+        return ResponseEntity.ok("All notifications marked as read.");
+    }
+
 }

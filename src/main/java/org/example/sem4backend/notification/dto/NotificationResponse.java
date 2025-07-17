@@ -11,6 +11,8 @@ public class NotificationResponse {
     private String sentBy;
     private List<String> roles;
     private List<String> userIds;
+    private boolean isRead;
+
 
     // Getters & Setters
     public String getId() { return id; }
@@ -33,4 +35,12 @@ public class NotificationResponse {
 
     public List<String> getUserIds() { return userIds; }
     public void setUserIds(List<String> userIds) { this.userIds = userIds; }
+
+    public boolean isIsRead() {
+        return isRead;
+    }
+
+    public void setIsRead(boolean isRead) {
+        this.isRead = isRead;
+    }
 }
