@@ -32,7 +32,9 @@ jobs:
         run: |
           mkdir deploy
           copy packaged\app.jar deploy\
+          echo ^<?xml version="1.0" encoding="utf-8"?^>^<configuration^>^<system.webServer^>^<handlers^>^<add name="httpPlatformHandler" path="*" verb="*" modules="httpPlatformHandler" resourceType="Unspecified"/^>^</handlers^>^<httpPlatform processPath="java.exe" arguments="-jar app.jar" startupTimeLimit="120" startupRetryCount="3" stdoutLogEnabled="true" stdoutLogFile=".\logs\stdout" processIdleTimeout="300"/^>^</system.webServer^>^</configuration^> > deploy/web.config
           powershell Compress-Archive -Path deploy\* -DestinationPath deploy.zip
+
 
       - name: 🔐 Login to Azure
         uses: azure/login@v2
