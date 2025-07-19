@@ -105,25 +105,14 @@ public class EmployeeHistoryService {
     }
 
     public List<EmployeeHistoryResponse> getByEmployeeId(String employeeId) {
-        Employee employee = employeeRepository.findById(String.valueOf(UUID.fromString(employeeId)))
+        Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new AppException(ErrorCode.EMPLOYEE_NOT_FOUND));
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.UNAUTHORIZED));
-
-        String userRole = user.getRole().getRoleName();
-
-        if (userRole.equals("USER") && !user.getEmployee().getEmployeeId().equals(employeeId)) {
-            throw new AppException(ErrorCode.UNAUTHORIZED);
-        }
 
         return historyRepository.findByEmployee(employee).stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
+
 
     private EmployeeHistoryResponse toResponse(EmployeeHistory history) {
         return EmployeeHistoryResponse.builder()
