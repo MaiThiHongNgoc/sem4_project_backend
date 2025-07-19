@@ -66,14 +66,15 @@ public class NotificationController {
 
         List<String> tokens = tokenRepo.findFcmTokensByUserId(userId);
         Map<String, Integer> result = firebasePushService.sendPushToMultipleTokens(tokens, title, message);
-        notificationService.saveNotification(title, message, "system", List.of("User"), List.of());
 
-
+        // ✅ Sửa tại đây: truyền đúng userId vào
+        notificationService.saveNotification(title, message, "system", List.of(), List.of(userId));
 
         return ResponseEntity.ok("✅ Sent to user: " + userId +
                 " | Success: " + result.get("success") +
                 " | Failed: " + result.get("failure"));
     }
+
 
     @PostMapping("/push-to-topic")
     @PreAuthorize("hasAnyRole('Admin', 'Hr')")
