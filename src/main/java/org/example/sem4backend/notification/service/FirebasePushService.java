@@ -23,14 +23,19 @@ public class FirebasePushService {
     }
 
     private void refreshAccessToken() throws IOException {
-        FileInputStream serviceAccount = new FileInputStream("src/main/resources/firebase-service-account.json");
-        GoogleCredentials credentials = GoogleCredentials.fromStream(serviceAccount)
-                .createScoped(List.of("https://www.googleapis.com/auth/firebase.messaging"));
-        credentials.refreshIfExpired();
-        accessToken = credentials.getAccessToken().getTokenValue();
-        System.out.println("🔑 Firebase accessToken = " + accessToken);
-
+    String firebaseConfig = System.getenv("FIREBASE_CONFIG");
+    if (firebaseConfig == null || firebaseConfig.isEmpty()) {
+        throw new RuntimeException("Missing FIREBASE_CONFIG env variable");
     }
+
+    InputStream serviceAccount = new ByteArrayInputStream(firebaseConfig.getBytes(StandardCharsets.UTF_8));
+    GoogleCredentials credentials = GoogleCredentials.fromStream(serviceAccount)
+            .createScoped(List.of("https://www.googleapis.com/auth/firebase.messaging"));
+    credentials.refreshIfExpired();
+    accessToken = credentials.getAccessToken().getTokenValue();
+    System.out.println("🔑 Firebase accessToken = " + accessToken);
+}
+
 
     public boolean sendPushNotification(String token, String title, String body) throws IOException {
         refreshAccessToken();
