@@ -23,27 +23,20 @@ jobs:
       - name: ⚙️ Build with Maven (skip tests)
         run: mvn clean install -DskipTests
 
-      - name: 🛠 Rename JAR to app.jar
+      - name: 📦 Prepare deploy folder (JAR + web.config)
         run: |
           mkdir packaged
           copy target\sem4-Backend-0.0.1-SNAPSHOT.jar packaged\app.jar
-
-      - name: 📦 Create deploy.zip for Azure
-        run: |
-          mkdir deploy
-          copy packaged\app.jar deploy\
-          echo ^<?xml version="1.0" encoding="utf-8"?^>^<configuration^>^<system.webServer^>^<handlers^>^<add name="httpPlatformHandler" path="*" verb="*" modules="httpPlatformHandler" resourceType="Unspecified"/^>^</handlers^>^<httpPlatform processPath="java.exe" arguments="-jar app.jar" startupTimeLimit="120" startupRetryCount="3" stdoutLogEnabled="true" stdoutLogFile=".\logs\stdout" processIdleTimeout="300"/^>^</system.webServer^>^</configuration^> > deploy/web.config
-          powershell Compress-Archive -Path deploy\* -DestinationPath deploy.zip
-
+          copy deploy\web.config packaged\web.config
 
       - name: 🔐 Login to Azure
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: 🚀 Deploy to Azure Web App
+      - name: 🚀 Deploy app.jar to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'hr-sem4-project'
           slot-name: 'Production'
-          package: deploy.zip
+          package: packaged
