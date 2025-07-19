@@ -28,14 +28,20 @@ jobs:
           mkdir packaged
           copy target\sem4-Backend-0.0.1-SNAPSHOT.jar packaged\app.jar
 
+      - name: 📦 Create deploy.zip for Azure
+        run: |
+          mkdir deploy
+          copy packaged\app.jar deploy\
+          powershell Compress-Archive -Path deploy\* -DestinationPath deploy.zip
+
       - name: 🔐 Login to Azure
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: 🚀 Deploy app.jar to Azure Web App
+      - name: 🚀 Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'hr-sem4-project'
           slot-name: 'Production'
-          package: packaged/app.jar
+          package: deploy.zip
