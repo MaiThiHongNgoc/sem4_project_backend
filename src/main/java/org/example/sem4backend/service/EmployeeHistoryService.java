@@ -25,36 +25,37 @@ public class EmployeeHistoryService {
     private final UserRepository userRepository;
 
     public EmployeeHistoryResponse create(EmployeeHistoryRequest request) {
-        Employee employee = employeeRepository.findById(request.getEmployeeId())
-                .orElseThrow(() -> new AppException(ErrorCode.EMPLOYEE_NOT_FOUND));
-        Department department = null;
-        Position position = null;
+    Employee employee = employeeRepository.findById(request.getEmployeeId())
+            .orElseThrow(() -> new AppException(ErrorCode.EMPLOYEE_NOT_FOUND));
+    Department department = null;
+    Position position = null;
 
-        if (request.getDepartmentId() != null) {
-            departmentRepository.findById(request.getDepartmentId())
-                    .orElseThrow(() -> new AppException(ErrorCode.DEPARTMENT_NOT_FOUND));
-        }
-
-        if (request.getPositionId() != null) {
-            position = positionRepository.findById(String.valueOf(request.getPositionId()))
-                    .orElseThrow(() -> new AppException(ErrorCode.POSITION_NOT_FOUND));
-        }
-
-        EmployeeHistory history = EmployeeHistory.builder()
-                .historyId(UUID.randomUUID().toString())
-                .employee(employee)
-                .department(department)
-                .position(position)
-                .startDate(request.getStartDate())
-                .endDate(request.getEndDate())
-                .reason(request.getReason())
-                .status(request.getStatus())
-                .build();
-
-        historyRepository.save(history);
-
-        return toResponse(history);
+    if (request.getDepartmentId() != null) {
+        department = departmentRepository.findById(request.getDepartmentId())
+                .orElseThrow(() -> new AppException(ErrorCode.DEPARTMENT_NOT_FOUND));
     }
+
+    if (request.getPositionId() != null) {
+        position = positionRepository.findById(request.getPositionId())
+                .orElseThrow(() -> new AppException(ErrorCode.POSITION_NOT_FOUND));
+    }
+
+    EmployeeHistory history = EmployeeHistory.builder()
+            .historyId(UUID.randomUUID().toString())
+            .employee(employee)
+            .department(department)
+            .position(position)
+            .startDate(request.getStartDate())
+            .endDate(request.getEndDate())
+            .reason(request.getReason())
+            .status(request.getStatus())
+            .build();
+
+    historyRepository.save(history);
+
+    return toResponse(history);
+}
+
 
     public List<EmployeeHistoryResponse> getAll() {
         return historyRepository.findAll().stream()
