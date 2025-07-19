@@ -23,11 +23,10 @@ jobs:
       - name: ⚙️ Build with Maven (skip tests)
         run: mvn clean install -DskipTests
 
-      - name: 📦 Prepare deploy folder (JAR + web.config)
+      - name: 📦 Prepare deploy folder (JAR only)
         run: |
           mkdir packaged
           copy target\sem4-Backend-0.0.1-SNAPSHOT.jar packaged\app.jar
-          copy deploy\web.config packaged\web.config
 
       - name: 🔐 Login to Azure
         uses: azure/login@v2
