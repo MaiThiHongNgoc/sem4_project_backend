@@ -26,5 +26,11 @@ public interface QRAttendanceRepository extends JpaRepository<QRAttendance, Stri
             "WHERE e.employeeId = :employeeId")
     List<QRAttendance> findByEmployeeIdWithEmployee(String employeeId);
 
+    @Query("SELECT q FROM QRAttendance q " +
+            "WHERE (:status IS NULL OR q.activeStatus = :status) " +
+            "AND (:startDate IS NULL OR q.attendanceDate >= :startDate) " +
+            "AND (:endDate IS NULL OR q.attendanceDate <= :endDate)")
+    List<QRAttendance> findByFilters(QRAttendance.ActiveStatus status, Date startDate, Date endDate);
+
 
 }

@@ -5,10 +5,12 @@ import org.example.sem4backend.entity.QRInfo;
 import org.example.sem4backend.repository.QRInfoRepository;
 import org.example.sem4backend.service.QRInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -64,6 +66,24 @@ public class QRInfoController {
         Optional<QRInfo> latest = qrInfoRepository.findTop1ByStatusOrderByCreatedAtDesc(QRInfo.Status.ACTIVE);
         return ResponseEntity.ok(latest);
     }
+
+    @GetMapping("/filter")
+    public ResponseEntity<List<QRInfo>> filterQRInfos(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Date startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Date endDate
+    ) {
+        QRInfo.Status statusEnum = null;
+        try {
+            if (status != null) {
+                statusEnum = QRInfo.Status.valueOf(status.toUpperCase());
+            }
+        } catch (Exception ignored) {}
+
+        List<QRInfo> filtered = qrInfoService.filterQRInfos(statusEnum, startDate, endDate);
+        return ResponseEntity.ok(filtered);
+    }
+
 
 
 }

@@ -117,6 +117,18 @@ public class WorkScheduleController {
         return ResponseEntity.ok(responses);
     }
 
+    @GetMapping("/filter")
+    public ApiResponse<List<WorkScheduleFullResponse>> filterSchedules(
+            @RequestParam(required = false) String employeeId,
+            @RequestParam(required = false) String shiftType,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate
+    ) {
+        return service.filterSchedules(employeeId, shiftType, status, fromDate, toDate);
+    }
+
+
 
 
 }
