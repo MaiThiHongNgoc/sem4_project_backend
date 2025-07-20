@@ -244,5 +244,9 @@ public class QRAttendanceService {
         return base64.trim();
     }
 
+    public List<QRAttendance> filterByStatusAndDate(QRAttendance.ActiveStatus status, Date startDate, Date endDate) {
+        return qrAttendanceRepository.findByFilters(status, startDate, endDate);
+    }
+
 
 }

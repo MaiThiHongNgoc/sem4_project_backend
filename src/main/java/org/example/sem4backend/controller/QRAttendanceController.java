@@ -8,6 +8,7 @@ import org.example.sem4backend.entity.QRAttendance;
 import org.example.sem4backend.repository.EmployeeRepository;
 import org.example.sem4backend.service.QRAttendanceService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -106,5 +107,16 @@ public class QRAttendanceController {
         List<QRAttendance> attendances = qrAttendanceService.getAttendanceByEmployeeId(employeeId);
         return ResponseEntity.ok(attendances);
     }
+
+    @GetMapping("/filter")
+    public ResponseEntity<List<QRAttendance>> filterAttendances(
+            @RequestParam(required = false) QRAttendance.ActiveStatus status,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date endDate
+    ) {
+        List<QRAttendance> results = qrAttendanceService.filterByStatusAndDate(status, startDate, endDate);
+        return ResponseEntity.ok(results);
+    }
+
 
 }

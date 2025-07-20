@@ -157,4 +157,8 @@ public class QRInfoService {
             return null;
         }
     }
+    public List<QRInfo> filterQRInfos(QRInfo.Status status, Date startDate, Date endDate) {
+        return qrInfoRepository.filterByStatusAndDateRange(status, startDate, endDate);
+    }
+
 }

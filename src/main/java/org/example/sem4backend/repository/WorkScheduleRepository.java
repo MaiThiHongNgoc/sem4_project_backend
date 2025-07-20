@@ -65,6 +65,21 @@ public interface WorkScheduleRepository extends JpaRepository<WorkSchedule, Stri
             LocalDate toDate
     );
 
+    @Query("SELECT w FROM WorkSchedule w " +
+            "WHERE (:employeeId IS NULL OR w.employee.employeeId = :employeeId) " +
+            "AND (:shiftType IS NULL OR w.shiftType = :shiftType) " +
+            "AND (:status IS NULL OR w.status = :status) " +
+            "AND (:fromDate IS NULL OR w.workDay >= :fromDate) " +
+            "AND (:toDate IS NULL OR w.workDay <= :toDate)")
+    List<WorkSchedule> filterSchedules(
+            @Param("employeeId") String employeeId,
+            @Param("shiftType") WorkSchedule.ShiftType shiftType,
+            @Param("status") WorkSchedule.Status status,
+            @Param("fromDate") LocalDate fromDate,
+            @Param("toDate") LocalDate toDate
+    );
+
+
 
 
 }

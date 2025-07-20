@@ -274,5 +274,38 @@ public class WorkScheduleService {
         }
     }
 
+    public ApiResponse<List<WorkScheduleFullResponse>> filterSchedules(
+            String employeeId,
+            String shiftTypeStr,
+            String statusStr,
+            LocalDate fromDate,
+            LocalDate toDate
+    ) {
+        WorkSchedule.ShiftType shiftType = null;
+        WorkSchedule.Status status = null;
+
+        if (shiftTypeStr != null && !shiftTypeStr.isBlank()) {
+            shiftType = Arrays.stream(WorkSchedule.ShiftType.values())
+                    .filter(t -> t.name().equalsIgnoreCase(shiftTypeStr))
+                    .findFirst()
+                    .orElseThrow(() -> new AppException(ErrorCode.INVALID_REQUEST, "Invalid shift type: " + shiftTypeStr));
+        }
+
+        if (statusStr != null && !statusStr.isBlank()) {
+            status = Arrays.stream(WorkSchedule.Status.values())
+                    .filter(s -> s.name().equalsIgnoreCase(statusStr))
+                    .findFirst()
+                    .orElseThrow(() -> new AppException(ErrorCode.INVALID_REQUEST, "Invalid status: " + statusStr));
+        }
+
+        List<WorkSchedule> schedules = repository.filterSchedules(employeeId, shiftType, status, fromDate, toDate);
+        List<WorkScheduleFullResponse> responses = schedules.stream()
+                .map(this::mapToFullResponse)
+                .collect(Collectors.toList());
+
+        return ApiResponse.success(responses);
+    }
+
+
 
 }
